@@ -1,0 +1,4 @@
+'use client';
+import {useEffect,useState} from 'react';
+export function AutoRefresh({seconds=30}:{seconds?:number}){useEffect(()=>{const t=setInterval(()=>location.reload(),seconds*1000);return()=>clearInterval(t)},[seconds]);return null}
+export function RatingInput({matchId,playerId,kind='player',initial=null}:{matchId:string,playerId?:string,kind?:string,initial?:number|null}){const [v,setV]=useState(initial==null?'':String(initial));const [saved,setSaved]=useState(false);async function save(){if(v==='')return;await fetch('/api/rating',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matchId,playerId,kind,rating:Number(v)})});setSaved(true);setTimeout(()=>setSaved(false),1200)}return <div className="rating-editor"><input type="number" min="0" max="10" step="0.1" value={v} onChange={e=>setV(e.target.value)} placeholder="—"/><button onClick={save}>Salva</button>{saved&&<small>✓</small>}</div>}
