@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Oswald", sans-serif;
+  --font-body: "Work Sans", sans-serif;
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  background-color: #141414;
+  background-image:
+    repeating-linear-gradient(115deg, rgba(247,247,245,0.03) 0px, rgba(247,247,245,0.03) 1px, transparent 1px, transparent 46px),
+    radial-gradient(circle at 100% 0%, rgba(201,166,72,0.12), transparent 45%);
+  background-attachment: fixed;
+  color: #F7F7F5;
+  font-family: var(--font-body);
+}
+
+.scoreboard {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Righe bianconere: il motivo distintivo della Juventus, usato con parsimonia
+   come dettaglio decorativo (non su interi sfondi di testo). */
+.stripes-bianconere {
+  background-image: repeating-linear-gradient(
+    90deg,
+    #0a0a0a 0px,
+    #0a0a0a 6px,
+    #f7f7f5 6px,
+    #f7f7f5 12px
+  );
+}
+
+.page-header {
+  position: relative;
+  padding-left: 14px;
+}
+.page-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 6px;
+  width: 4px;
+  background: #c9a648;
+  border-radius: 2px;
+}
+
+.card {
+  background: #232323;
+  border: 1px solid #33332F;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.15s ease;
+}
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+
+::selection {
+  background: #F7F7F5;
+  color: #0A0A0A;
+}
