@@ -1,0 +1,21 @@
+// Juventus - Atalanta 2-0 del 20/09/2026
+// Fonte: tabelle statistiche giocatori + dettaglio tiri/xG. I minuti NON erano negli screenshot, quindi non sono inclusi.
+// I nomi qui sotto sono quelli della rosa: se nell'app sono scritti in modo diverso vengono comunque riconosciuti.
+SQUADRA: tiri=14 tiri_porta=5 tiri_bloccati=5 angoli=4 falli=10 gialli=1 rossi=0 fuorigioco=4 passaggi=521 precisione=88 xg=1,308 cross=18 contrasti=11 parate=1 tiri_area=10 tiri_fuori_area=4 colpi_testa=5 rinvii=11 rimesse=18 azioni_tiro=11
+GIOCATORI:
+Giorgio VICARIO | titolare=si parate=1 passaggi=32/36 rinvii=5
+Jhon LUCUMI | titolare=si passaggi=66/70 contrasti=1 rinvii=6
+Bremer | titolare=si gol=1 tiri=1 tiri_porta=1 passaggi=67/72 contrasti=1 falli_fatti=3 tiri_area=1 colpi_testa=1 xg=0,148 gol_testa=1
+Pierre KALULU | titolare=si angoli=1 passaggi=45/52 cross=4 falli_fatti=1 rimesse=6 azioni_tiro=1
+Nicolas GONZALEZ | titolare=si angoli=1 tiri=1 passaggi=24/30 cross=2 contrasti=3 falli_fatti=2 falli_subiti=2 tiri_area=1 colpi_testa=1 xg=0,047 rimesse=1 azioni_tiro=2
+Douglas LUIZ | titolare=si passaggi=64/71 cross=2 contrasti=1 falli_subiti=1 azioni_tiro=1
+Zeki CELIK | titolare=si assist=1 angoli=1 tiri=1 tiri_bloccati=1 passaggi=44/50 cross=3 falli_fatti=2 tiri_fuori_area=1 xg=0,018 rimesse=5 azioni_tiro=2
+Weston MCKENNIE | titolare=si tiri=1 tiri_porta=1 passaggi=28/33 cross=1 contrasti=1 fuorigioco=1 tiri_area=1 colpi_testa=1 xg=0,115 rimesse=5 azioni_tiro=1
+Francisco CONCEICAO | titolare=si gol=1 gialli=1 tiri=2 tiri_porta=1 tiri_bloccati=1 passaggi=22/26 cross=2 fuorigioco=2 falli_fatti=1 falli_subiti=1 tiri_area=2 xg=0,248 rimesse=1 gol_sinistro=1
+Randal KOLO MUANI | titolare=si angoli=1 tiri=2 tiri_porta=1 passaggi=15/19 contrasti=1 fuorigioco=1 falli_subiti=2 tiri_area=2 colpi_testa=1 xg=0,485
+Kenan ALAJBEGOVIC | titolare=si tiri=2 tiri_bloccati=1 passaggi=11/12 falli_subiti=1 tiri_area=1 tiri_fuori_area=1 xg=0,025
+Pape SARR | titolare=no tiri=2 tiri_porta=1 passaggi=25/27 contrasti=2 falli_subiti=1 tiri_fuori_area=2 xg=0,105
+Edon ZHEGROVA | titolare=no assist=1 tiri=1 tiri_bloccati=1 passaggi=6/8 cross=3 contrasti=1 tiri_area=1 xg=0,087 azioni_tiro=3
+Teun KOOPMEINERS | titolare=no tiri=1 tiri_bloccati=1 passaggi=9/11 cross=1 falli_fatti=1 falli_subiti=1 tiri_area=1 colpi_testa=1 xg=0,039
+Niclas WOLTEMADE | titolare=no passaggi=1/2 falli_subiti=1 azioni_tiro=1
+Lloyd KELLY | titolare=no passaggi=2/2
