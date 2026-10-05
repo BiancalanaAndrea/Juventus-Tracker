@@ -1,0 +1,21 @@
+-- Incolla TUTTO nello SQL Editor di Supabase e premi RUN (sicuro, non cancella nulla).
+alter table match_player_stats add column if not exists corners_won integer;
+alter table match_player_stats add column if not exists shots_inside_box integer;
+alter table match_player_stats add column if not exists shots_outside_box integer;
+alter table match_player_stats add column if not exists headed_shots integer;
+alter table match_player_stats add column if not exists hit_woodwork integer;
+alter table match_player_stats add column if not exists goal_kicks integer;
+alter table match_player_stats add column if not exists throw_ins integer;
+alter table match_player_stats add column if not exists goals_outside_box integer;
+alter table match_player_stats add column if not exists goals_right_foot integer;
+alter table match_player_stats add column if not exists goals_left_foot integer;
+alter table match_player_stats add column if not exists goals_head integer;
+alter table match_player_stats add column if not exists goals_free_kick integer;
+alter table match_player_stats add column if not exists fantasy_assists integer;
+alter table match_player_stats add column if not exists shot_creating integer;
+alter table match_team_stats add column if not exists shots_inside_box integer;
+alter table match_team_stats add column if not exists shots_outside_box integer;
+alter table match_team_stats add column if not exists headed_shots integer;
+alter table match_team_stats add column if not exists goal_kicks integer;
+alter table match_team_stats add column if not exists throw_ins integer;
+alter table match_team_stats add column if not exists shot_creating integer;
