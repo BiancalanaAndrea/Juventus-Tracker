@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { POSITION_ORDER, POSITION_LABELS, type Position } from "@/lib/types";
 import { getTheme, type CompetitionTheme } from "@/lib/competitionThemes";
+import { shortName } from "@/lib/names";
 
 type SortKey = string;
 type _Old =
@@ -108,17 +109,20 @@ export default function PlayersStatsTable({ players, theme }: { players: any[]; 
 
   return (
     <div className="overflow-x-auto rounded-lg" style={{ background: t.surface, border: `1px solid ${t.accent}33` }}>
-      <table className="w-full text-sm">
+      <table className="w-full text-xs sm:text-sm">
         <thead>
           <tr style={{ borderBottom: `1px solid ${t.accent}33` }} className="text-left text-xs uppercase">
-            <th className="px-3 py-2 sticky left-0" style={{ background: t.surface, color: t.text }}>
+            <th
+              className="px-2 py-2 sm:px-3 sticky left-0 z-10 border-r"
+              style={{ background: t.surface, color: t.text, borderColor: `${t.accent}33` }}
+            >
               Giocatore
             </th>
-            <th className="px-3 py-2" style={{ color: t.textMuted }}>
+            <th className="hidden sm:table-cell px-3 py-2" style={{ color: t.textMuted }}>
               Ruolo
             </th>
             {COLUMNS.map((c) => (
-              <th key={c.key} className="px-3 py-2" style={{ color: t.textMuted }}>
+              <th key={c.key} className="px-2 py-2 sm:px-3" style={{ color: t.textMuted }}>
                 <button onClick={() => toggleSort(c.key)} className="flex items-center gap-1 whitespace-nowrap hover:opacity-100" style={{ opacity: 0.85 }}>
                   {c.label}
                   {sort.key === c.key && <span>{sort.dir === "desc" ? "▼" : "▲"}</span>}
@@ -130,18 +134,28 @@ export default function PlayersStatsTable({ players, theme }: { players: any[]; 
         <tbody>
           {sorted.map((p) => (
             <tr key={p.id} style={{ borderBottom: `1px solid ${t.accent}1a` }}>
-              <td className="px-3 py-2 sticky left-0 whitespace-nowrap" style={{ background: t.surface }}>
-                <Link href={`/rosa/${p.id}`} className="hover:underline" style={{ color: t.text }}>
-                  #{p.shirt_number ?? "-"} {p.name}
+              <td
+                className="px-2 py-2 sm:px-3 sticky left-0 z-10 whitespace-nowrap border-r"
+                style={{ background: t.surface, borderColor: `${t.accent}33` }}
+              >
+                <Link
+                  href={`/rosa/${p.id}`}
+                  className="block max-w-[92px] truncate text-xs hover:underline sm:max-w-none sm:text-sm"
+                  style={{ color: t.text }}
+                  title={p.name}
+                >
+                  {p.position === "CO" ? "" : `${p.shirt_number ?? "-"} `}
+                  <span className="sm:hidden">{shortName(p.name)}</span>
+                  <span className="hidden sm:inline">{p.name}</span>
                 </Link>
               </td>
-              <td className="px-3 py-2" style={{ color: t.textMuted }}>
+              <td className="hidden sm:table-cell px-3 py-2" style={{ color: t.textMuted }}>
                 {POSITION_LABELS[p.position as Position]}
               </td>
               {COLUMNS.map((c) => {
                 const raw = p.season_stats[c.key];
                 return (
-                  <td key={c.key} className="px-3 py-2" style={{ color: t.text }}>
+                  <td key={c.key} className="px-2 py-2 text-xs sm:px-3 sm:text-sm" style={{ color: t.text }}>
                     {raw == null ? "-" : c.format ? c.format(raw) : raw}
                   </td>
                 );

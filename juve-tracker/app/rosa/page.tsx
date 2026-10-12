@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { POSITION_ORDER, POSITION_LABELS } from "@/lib/types";
 import NewPlayerForm from "@/components/NewPlayerForm";
-import { photoImgStyle } from "@/lib/photo";
+import PlayerPhoto from "@/components/PlayerPhoto";
 
 export default function RosaPage() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -60,15 +60,7 @@ export default function RosaPage() {
                     className="card p-3 hover:shadow-sm transition-shadow"
                   >
                     <div className="relative h-20 w-20 mx-auto mb-2 overflow-hidden rounded-full bg-ink/5">
-                      {p.photo_url && p.photo_url.trim() !== "" && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.photo_url}
-                          alt={p.name}
-                          className="h-full w-full object-cover"
-                          style={photoImgStyle(p.photo_focus_y, p.photo_focus_x)}
-                        />
-                      )}
+                      <PlayerPhoto url={p.photo_url} name={p.name} focusY={p.photo_focus_y} focusX={p.photo_focus_x} fallbackClassName="text-lg text-steel" />
                     </div>
                     <p className="text-center text-sm font-medium truncate">{p.name}</p>
                     <p className="text-center text-xs text-steel mb-2">{pos === "CO" ? "Allenatore" : `#${p.shirt_number ?? "-"}`}</p>

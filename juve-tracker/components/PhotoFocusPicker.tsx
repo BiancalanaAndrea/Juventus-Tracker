@@ -71,6 +71,7 @@ export default function PhotoFocusPicker({
           alt="Anteprima"
           draggable={false}
           className="h-full w-full object-cover pointer-events-none"
+          referrerPolicy="no-referrer"
           style={photoImgStyle(valueY, valueX)}
         />
         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-gold/60" />

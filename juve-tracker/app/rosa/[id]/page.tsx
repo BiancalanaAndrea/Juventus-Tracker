@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { POSITION_LABELS } from "@/lib/types";
 import BackButton from "@/components/BackButton";
 import PlayerActions from "@/components/PlayerActions";
-import { photoImgStyle } from "@/lib/photo";
+import PlayerPhoto from "@/components/PlayerPhoto";
 import { PLAYER_EXTRA_GROUPS, ALL_EXTRA_KEYS, fmtStat } from "@/lib/statDefs";
 import { ratingColors } from "@/lib/ratingColor";
 
@@ -55,15 +55,7 @@ export default async function PlayerDetailPage({ params }: { params: { id: strin
 
       <div className="flex items-center gap-4 mb-4">
         <div className="relative h-24 w-24 overflow-hidden rounded-full bg-ink/5 shrink-0">
-          {player.photo_url && player.photo_url.trim() !== "" && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={player.photo_url}
-              alt={player.name}
-              className="h-full w-full object-cover"
-              style={photoImgStyle(player.photo_focus_y, player.photo_focus_x)}
-            />
-          )}
+          <PlayerPhoto url={player.photo_url} name={player.name} focusY={player.photo_focus_y} focusX={player.photo_focus_x} fallbackClassName="text-2xl text-steel" />
         </div>
         <div>
           <h1 className="scoreboard text-2xl">{player.name}</h1>

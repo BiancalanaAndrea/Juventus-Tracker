@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FORMATIONS, layoutLineup, sortBench } from "@/lib/formations";
-import { photoImgStyle } from "@/lib/photo";
+import PlayerPhoto from "./PlayerPhoto";
 import { ratingColors } from "@/lib/ratingColor";
 import type { CompetitionTheme } from "@/lib/competitionThemes";
 
@@ -62,9 +62,25 @@ function SubArrow({ dir }: { dir: "in" | "out" }) {
   );
 }
 
+// Cognome da mostrare ("Nick WOLTEMADE" -> "WOLTEMADE", "Francisco Conceição" -> "Conceição")
+function shortName(name: string) {
+  const words = String(name || "").split(" ").filter(Boolean);
+  const upper = words.filter((w) => w.length > 1 && w === w.toUpperCase());
+  return upper.length ? upper.join(" ") : words[words.length - 1] || "";
+}
+
+// quanti minuti ha giocato / quando è entrato (stima: 90 - minuti giocati)
+const hasActivity = (ps: any) =>
+  (ps.minutes_played || 0) > 0 ||
+  ["goals", "assists", "shots_total", "passes_total", "fouls_committed", "fouls_suffered", "yellow_cards", "red_cards"].some(
+    (k) => (ps[k] || 0) > 0
+  );
+
 function PlayerNode({
   ps,
   rating,
+  replacedBy,
+  replacedByRating,
   sub,
   selected,
   onClick,
@@ -72,6 +88,8 @@ function PlayerNode({
 }: {
   ps: any;
   rating?: number | null;
+  replacedBy?: any;
+  replacedByRating?: number | null;
   sub?: "in" | "out" | null;
   selected?: boolean;
   onClick?: () => void;
@@ -98,19 +116,7 @@ function PlayerNode({
             selected ? "ring-yellow-300 scale-110" : "ring-white/30"
           }`}
         >
-          {p.photo_url && p.photo_url.trim() !== "" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={p.photo_url}
-              alt={p.name}
-              className="h-full w-full object-cover"
-              style={photoImgStyle(p.photo_focus_y, p.photo_focus_x)}
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/80">
-              {p.shirt_number ?? "?"}
-            </span>
-          )}
+          <PlayerPhoto url={p.photo_url} name={p.name} focusY={p.photo_focus_y} focusX={p.photo_focus_x} fallback={p.shirt_number ?? "?"} />
         </div>
         {/* sostituzione */}
         {sub && (
@@ -134,6 +140,28 @@ function PlayerNode({
             {fmtRating(rating)}
           </span>
         )}
+        {/* chi è entrato al suo posto */}
+        {replacedBy && (
+          <div className="absolute -bottom-2 -right-6 z-20 flex flex-col items-center">
+            <div className="mb-0.5 flex gap-px">
+              <Repeat n={replacedBy.assists || 0} icon="👟" title="Assist" />
+              <Repeat n={replacedBy.goals || 0} icon="⚽" title="Gol" />
+            </div>
+            <div className="relative">
+              <div className="h-7 w-7 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-[#2FBE72]">
+                <PlayerPhoto url={replacedBy.player.photo_url} name={replacedBy.player.name} focusY={replacedBy.player.photo_focus_y} focusX={replacedBy.player.photo_focus_x} fallback={replacedBy.player.shirt_number ?? "?"} fallbackClassName="text-[9px]" />
+              </div>
+              {replacedByRating != null && (
+                <span
+                  className="absolute -bottom-1 -right-2 rounded px-1 py-px text-[8px] font-bold leading-none ring-1 ring-black/40"
+                  style={{ background: ratingColors(replacedByRating).bg, color: ratingColors(replacedByRating).text }}
+                >
+                  {fmtRating(replacedByRating)}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         {/* voto dei siti */}
         {ps.site_rating != null && (
           <span
@@ -152,6 +180,12 @@ function PlayerNode({
         {p.shirt_number ?? "-"}
         {minute ? ` · ${minute}` : ""}
       </p>
+      {replacedBy && (
+        <p className="max-w-full truncate text-[10px] font-medium leading-tight" style={{ color: "#6EE7A0" }}>
+          ↑ {shortName(replacedBy.player.name)}
+          {(replacedBy.minutes_played || 0) > 0 ? ` ${90 - replacedBy.minutes_played}′` : ""}
+        </p>
+      )}
     </button>
   );
 }
@@ -180,11 +214,46 @@ export default function LineupPitch({
 
   const starters = playerStats.filter((ps) => ps.is_starter);
   const bench = sortBench(playerStats.filter((ps) => !ps.is_starter));
-  const entered = bench.filter((ps) => (ps.minutes_played || 0) > 0);
-  const unused = bench.filter((ps) => !((ps.minutes_played || 0) > 0));
+  const entered = bench.filter(hasActivity);
+  const unused = bench.filter((ps) => !hasActivity(ps));
 
   const { placed, formationLabel } = layoutLineup(starters, formation);
 
+  // Abbina ogni titolare uscito al subentrato che ha preso il suo posto:
+  // il minuto d'uscita (minuti giocati dal titolare) coincide col minuto d'ingresso (90 - minuti del subentrato).
+  const replacedByMap = new Map<number, any>();
+  {
+    const outs = starters.filter((s) => (s.minutes_played || 0) > 0 && s.minutes_played < 90);
+    const free = new Set(outs.map((s) => s.player.id));
+    const ins = entered.filter((s) => (s.minutes_played || 0) > 0);
+    const groupOf = (p: string) => (p === "GK" ? "GK" : p);
+    for (const pass of [0, 1]) {
+      for (const subPs of ins) {
+        if ([...replacedByMap.values()].includes(subPs)) continue;
+        const inMinute = 90 - subPs.minutes_played;
+        let best: any = null;
+        let bestScore = Infinity;
+        for (const o of outs) {
+          if (!free.has(o.player.id)) continue;
+          const diff = Math.abs(o.minutes_played - inMinute);
+          if (diff > 1) continue;
+          const samePos = groupOf(o.player.position) === groupOf(subPs.player.position);
+          if (pass === 0 && !samePos) continue; // prima solo stesso ruolo
+          const score = diff * 10 + (samePos ? 0 : 1);
+          if (score < bestScore) {
+            bestScore = score;
+            best = o;
+          }
+        }
+        if (best) {
+          replacedByMap.set(best.player.id, subPs);
+          free.delete(best.player.id);
+        }
+      }
+    }
+  }
+  const pairedSubs = new Set<any>([...replacedByMap.values()]);
+  const enteredUnpaired = entered.filter((s) => !pairedSubs.has(s));
   const changeFormation = async (value: string) => {
     setMsg(null);
     const res = await fetch(`/api/matches/${matchId}`, {
@@ -290,6 +359,12 @@ export default function LineupPitch({
               <PlayerNode
                 ps={pl.ps}
                 rating={ratings[pl.ps.player.id] ?? null}
+                replacedBy={replacedByMap.get(pl.ps.player.id)}
+                replacedByRating={
+                  replacedByMap.get(pl.ps.player.id)
+                    ? ratings[replacedByMap.get(pl.ps.player.id).player.id] ?? null
+                    : null
+                }
                 sub={subOf(pl.ps)}
                 selected={selected === pl.ps.player.id}
                 onClick={() => swap(pl.ps.player.id)}
@@ -308,19 +383,7 @@ export default function LineupPitch({
         <div className="mt-3 flex items-center gap-3 rounded-xl bg-[#2a7338] px-3 py-2.5 ring-1 ring-white/10">
           <div className="relative">
             <div className="h-11 w-11 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-white/30">
-              {coach.photo_url && coach.photo_url.trim() !== "" ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={coach.photo_url}
-                  alt={coach.name}
-                  className="h-full w-full object-cover"
-                  style={photoImgStyle(coach.photo_focus_y, coach.photo_focus_x)}
-                />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/80">
-                  ALL
-                </span>
-              )}
+              <PlayerPhoto url={coach.photo_url} name={coach.name} focusY={coach.photo_focus_y} focusX={coach.photo_focus_x} fallback="ALL" fallbackClassName="text-xs" />
             </div>
             {ratings[coach.id] != null && (
               <span
@@ -339,13 +402,13 @@ export default function LineupPitch({
         </div>
       )}
 
-      {entered.length > 0 && (
+      {enteredUnpaired.length > 0 && (
         <div className="mt-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accent }}>
             Subentrati
           </p>
           <div className="flex flex-wrap gap-x-3 gap-y-5 rounded-xl bg-[#2a7338] px-3 py-5 ring-1 ring-white/10">
-            {entered.map((ps) => (
+            {enteredUnpaired.map((ps) => (
               <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} sub="in" small />
             ))}
           </div>
@@ -355,9 +418,16 @@ export default function LineupPitch({
         </div>
       )}
       {unused.length > 0 && (
-        <p className="mt-3 text-xs" style={{ color: theme.textMuted }}>
-          Non entrati: {unused.map((ps) => ps.player.name).join(", ")}
-        </p>
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accent }}>
+            Non entrati
+          </p>
+          <div className="flex flex-wrap gap-x-3 gap-y-5 rounded-xl bg-[#2a7338] px-3 py-5 ring-1 ring-white/10">
+            {unused.map((ps) => (
+              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} small />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

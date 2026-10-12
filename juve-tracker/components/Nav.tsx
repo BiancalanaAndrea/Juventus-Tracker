@@ -3,12 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// "short" = scritta breve per la barra in basso del cellulare (poco spazio)
 const ITEMS = [
-  { href: "/", label: "Dashboard" },
-  { href: "/partite", label: "Partite" },
-  { href: "/rosa", label: "Rosa" },
-  { href: "/statistiche", label: "Statistiche" },
-  { href: "/impostazioni", label: "Impostazioni" },
+  { href: "/", label: "Dashboard", short: "Home", icon: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
+  { href: "/partite", label: "Partite", short: "Partite", icon: "M4 5h16v14H4zM4 10h16M9 5v14" },
+  { href: "/rosa", label: "Rosa", short: "Rosa", icon: "M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 21c0-4 3.5-6 8-6s8 2 8 6" },
+  { href: "/statistiche", label: "Statistiche", short: "Stats", icon: "M5 20V10M12 20V4M19 20v-7" },
+  {
+    href: "/impostazioni",
+    label: "Impostazioni",
+    short: "Impost.",
+    icon: "M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.2L14 3h-4l-.6 2.6a7 7 0 00-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 002 1.2L10 21h4l.6-2.6a7 7 0 002-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z",
+  },
 ];
 
 export default function Nav() {
@@ -51,18 +57,31 @@ export default function Nav() {
 
       {/* Mobile: barra in basso, nera */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex justify-around bg-chalk"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex justify-around bg-chalk border-t border-white/10"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         {ITEMS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex-1 py-3 text-center text-xs font-medium ${
+            className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 pb-2 pt-2 text-center text-[10px] font-medium leading-none ${
               isActive(item.href) ? "text-gold border-t-2 border-gold" : "text-ink/50 border-t-2 border-transparent"
             }`}
           >
-            {item.label}
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d={item.icon} />
+            </svg>
+            <span className="block w-full truncate">{item.short}</span>
           </Link>
         ))}
       </nav>
