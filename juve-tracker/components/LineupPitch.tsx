@@ -253,7 +253,6 @@ export default function LineupPitch({
     }
   }
   const pairedSubs = new Set<any>([...replacedByMap.values()]);
-  const enteredUnpaired = entered.filter((s) => !pairedSubs.has(s));
   const changeFormation = async (value: string) => {
     setMsg(null);
     const res = await fetch(`/api/matches/${matchId}`, {
@@ -402,13 +401,13 @@ export default function LineupPitch({
         </div>
       )}
 
-      {enteredUnpaired.length > 0 && (
+      {entered.length > 0 && (
         <div className="mt-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accent }}>
             Subentrati
           </p>
           <div className="flex flex-wrap gap-x-3 gap-y-5 rounded-xl bg-[#2a7338] px-3 py-5 ring-1 ring-white/10">
-            {enteredUnpaired.map((ps) => (
+            {entered.map((ps) => (
               <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} sub="in" small />
             ))}
           </div>
