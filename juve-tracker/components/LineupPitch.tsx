@@ -69,6 +69,12 @@ function shortName(name: string) {
   return upper.length ? upper.join(" ") : words[words.length - 1] || "";
 }
 
+// "⚽⚽" (max 3, poi "⚽×4")
+function iconsText(n: number, icon: string) {
+  if (n <= 0) return "";
+  return n > 3 ? `${icon}×${n}` : icon.repeat(n);
+}
+
 // Nome sul campo: "Mario ROSSI" -> "M. ROSSI"; un solo nome ("Bremer") -> "BREMER"
 function fieldName(name: string) {
   const words = String(name || "").split(" ").filter(Boolean);
@@ -154,10 +160,6 @@ function PlayerNode({
         {/* chi è entrato al suo posto */}
         {replacedBy && (
           <div className="absolute -bottom-2 -right-3 z-20 flex sm:-right-6 flex-col items-center">
-            <div className="mb-0.5 flex gap-px">
-              <Repeat n={replacedBy.assists || 0} icon="👟" title="Assist" />
-              <Repeat n={replacedBy.goals || 0} icon="⚽" title="Gol" />
-            </div>
             <div className="relative">
               <div className="h-6 w-6 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-[#2FBE72] sm:h-7 sm:w-7">
                 <PlayerPhoto url={replacedBy.player.photo_url} name={replacedBy.player.name} focusY={replacedBy.player.photo_focus_y} focusX={replacedBy.player.photo_focus_x} fallback={replacedBy.player.shirt_number ?? "?"} fallbackClassName="text-[9px]" />
@@ -195,6 +197,12 @@ function PlayerNode({
         <p className="max-w-full truncate text-[10px] font-medium leading-tight" style={{ color: "#6EE7A0" }}>
           ↑ {shortName(replacedBy.player.name).toUpperCase()}
           {(replacedBy.minutes_played || 0) > 0 ? ` ${90 - replacedBy.minutes_played}′` : ""}
+        </p>
+      )}
+      {replacedBy && ((replacedBy.goals || 0) > 0 || (replacedBy.assists || 0) > 0) && (
+        <p className="whitespace-nowrap text-[10px] leading-tight" title="Gol e assist del subentrato">
+          {iconsText(replacedBy.goals || 0, "⚽")}
+          {iconsText(replacedBy.assists || 0, "👟")}
         </p>
       )}
     </button>
