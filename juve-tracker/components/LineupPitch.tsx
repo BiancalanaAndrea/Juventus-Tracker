@@ -69,6 +69,17 @@ function shortName(name: string) {
   return upper.length ? upper.join(" ") : words[words.length - 1] || "";
 }
 
+// Nome sul campo: "Mario ROSSI" -> "M. ROSSI"; un solo nome ("Bremer") -> "BREMER"
+function fieldName(name: string) {
+  const words = String(name || "").split(" ").filter(Boolean);
+  if (words.length <= 1) return (words[0] || "").toUpperCase();
+  const upper = words.filter((w) => w.length > 1 && w === w.toUpperCase());
+  const surnameWords = upper.length ? upper : [words[words.length - 1]];
+  const first = words.find((w) => !surnameWords.includes(w));
+  const surname = surnameWords.join(" ").toUpperCase();
+  return first ? `${first[0].toUpperCase()}. ${surname}` : surname;
+}
+
 // quanti minuti ha giocato / quando è entrato (stima: 90 - minuti giocati)
 const hasActivity = (ps: any) =>
   (ps.minutes_played || 0) > 0 ||
@@ -174,7 +185,7 @@ function PlayerNode({
         )}
       </div>
       <p className="mt-1.5 max-w-full truncate text-[11px] font-medium leading-tight text-white drop-shadow sm:text-xs">
-        {p.name}
+        {fieldName(p.name)}
       </p>
       <p className="text-[10px] leading-tight text-white/70">
         {p.shirt_number ?? "-"}
@@ -182,7 +193,7 @@ function PlayerNode({
       </p>
       {replacedBy && (
         <p className="max-w-full truncate text-[10px] font-medium leading-tight" style={{ color: "#6EE7A0" }}>
-          ↑ {shortName(replacedBy.player.name)}
+          ↑ {shortName(replacedBy.player.name).toUpperCase()}
           {(replacedBy.minutes_played || 0) > 0 ? ` ${90 - replacedBy.minutes_played}′` : ""}
         </p>
       )}
