@@ -133,7 +133,7 @@ function PlayerNode({
         {/* il mio voto */}
         {rating != null && (
           <span
-            className="absolute -bottom-1.5 -left-2 z-10 rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none ring-1 ring-black/40"
+            className="absolute -bottom-1.5 -left-1 z-10 rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none ring-1 ring-black/40 sm:-left-2"
             style={{ background: ratingColors(rating).bg, color: ratingColors(rating).text }}
             title="Il mio voto"
           >
@@ -142,18 +142,18 @@ function PlayerNode({
         )}
         {/* chi è entrato al suo posto */}
         {replacedBy && (
-          <div className="absolute -bottom-2 -right-6 z-20 flex flex-col items-center">
+          <div className="absolute -bottom-2 -right-3 z-20 flex sm:-right-6 flex-col items-center">
             <div className="mb-0.5 flex gap-px">
               <Repeat n={replacedBy.assists || 0} icon="👟" title="Assist" />
               <Repeat n={replacedBy.goals || 0} icon="⚽" title="Gol" />
             </div>
             <div className="relative">
-              <div className="h-7 w-7 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-[#2FBE72]">
+              <div className="h-6 w-6 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-[#2FBE72] sm:h-7 sm:w-7">
                 <PlayerPhoto url={replacedBy.player.photo_url} name={replacedBy.player.name} focusY={replacedBy.player.photo_focus_y} focusX={replacedBy.player.photo_focus_x} fallback={replacedBy.player.shirt_number ?? "?"} fallbackClassName="text-[9px]" />
               </div>
               {replacedByRating != null && (
                 <span
-                  className="absolute -bottom-1 -right-2 rounded px-1 py-px text-[8px] font-bold leading-none ring-1 ring-black/40"
+                  className="absolute -bottom-1 -right-1 rounded px-0.5 py-px text-[8px] sm:-right-2 sm:px-1 font-bold leading-none ring-1 ring-black/40"
                   style={{ background: ratingColors(replacedByRating).bg, color: ratingColors(replacedByRating).text }}
                 >
                   {fmtRating(replacedByRating)}
