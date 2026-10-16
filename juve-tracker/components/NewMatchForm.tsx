@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import RosterPicker from "./RosterPicker";
 import { FORMATIONS } from "@/lib/formations";
 import { fromInput } from "@/lib/datetime";
+import { getTheme } from "@/lib/competitionThemes";
 
 const COMPETITIONS = [
   { value: "serie_a", label: "Serie A" },
@@ -36,6 +37,8 @@ export default function NewMatchForm({ onClose }: { onClose: () => void }) {
     coach_id: "",
   });
   const [coaches, setCoaches] = useState<any[]>([]);
+  // colore del campionato scelto: verde Serie A, arancione Europa League, blu Coppa Italia
+  const theme = getTheme(form.competition_short_name);
 
   useEffect(() => {
     Promise.all([
@@ -253,7 +256,8 @@ export default function NewMatchForm({ onClose }: { onClose: () => void }) {
                           key={c.id}
                           type="button"
                           onClick={() => setForm({ ...form, coach_id: on ? "" : String(c.id) })}
-                          className={`rounded-full border px-2.5 py-1 text-xs ${on ? "bg-ink text-chalk border-transparent" : "border-line text-steel"}`}
+                          className={`rounded-full border px-2.5 py-1 text-xs ${on ? "border-transparent" : "border-line text-steel"}`}
+                          style={on ? { background: theme.accent, color: theme.accentText } : undefined}
                         >
                           {c.name}
                         </button>
@@ -274,6 +278,8 @@ export default function NewMatchForm({ onClose }: { onClose: () => void }) {
                   selected={starters}
                   disabledIds={substitutes}
                   onToggle={(id) => toggle(starters, setStarters, id, MAX_STARTERS)}
+                  activeColor={theme.accent}
+                  activeTextColor={theme.accentText}
                 />
               </div>
               <div>
@@ -285,6 +291,8 @@ export default function NewMatchForm({ onClose }: { onClose: () => void }) {
                   selected={substitutes}
                   disabledIds={starters}
                   onToggle={(id) => toggle(substitutes, setSubstitutes, id, MAX_SUBS)}
+                  activeColor={theme.accent}
+                  activeTextColor={theme.accentText}
                 />
               </div>
             </>

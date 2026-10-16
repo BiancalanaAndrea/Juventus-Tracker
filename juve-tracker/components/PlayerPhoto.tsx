@@ -59,13 +59,20 @@ export default function PlayerPhoto({
   fallbackClassName?: string;
 }) {
   const direct = cleanPhotoUrl(url);
-  // 0 = indirizzo originale, 1 = scaricata dal nostro server, 2 = non disponibile
-  const [stage, setStage] = useState<0 | 1 | 2>(0);
+  // 0 = indirizzo originale, 1 = scaricata dal nostro server, 2 = tramite servizio di ridimensionamento
+  // (aggira i blocchi dei siti e le foto troppo pesanti), 3 = non disponibile
+  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
   useEffect(() => setStage(0), [direct]);
 
-  const src = direct && stage === 1 ? `/api/photo?u=${encodeURIComponent(direct)}` : direct;
+  const src = !direct
+    ? null
+    : stage === 1
+    ? `/api/photo?u=${encodeURIComponent(direct)}`
+    : stage === 2
+    ? `https://wsrv.nl/?url=${encodeURIComponent(direct)}&w=600&h=600&fit=cover&a=attention&output=jpg`
+    : direct;
 
-  if (!src || stage === 2) {
+  if (!src || stage === 3) {
     return (
       <span className={`flex h-full w-full items-center justify-center font-semibold text-white/80 ${fallbackClassName}`}>
         {fallback ?? initials(name)}
@@ -81,7 +88,7 @@ export default function PlayerPhoto({
       className="h-full w-full object-cover"
       style={photoImgStyle(focusY, focusX)}
       referrerPolicy="no-referrer"
-      onError={() => setStage((st) => (st === 0 ? 1 : 2))}
+      onError={() => setStage((st) => (st === 0 ? 1 : st === 1 ? 2 : 3))}
     />
   );
 }

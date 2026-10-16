@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { POSITION_ORDER, POSITION_LABELS, type Position } from "@/lib/types";
 import { getTheme, type CompetitionTheme } from "@/lib/competitionThemes";
@@ -37,8 +37,10 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: number) => string }[]
   { key: "goal_contributions", label: "G+A" },
   { key: "avg_rating", label: "Voto medio", format: (v) => v.toFixed(2) },
   { key: "avg_site_rating", label: "Voto siti", format: (v) => v.toFixed(2) },
-  { key: "mvp_count", label: "🏆 MVP" },
-  { key: "worst_count", label: "👎 Peggiore" },
+  { key: "mvp_count", label: "🏆 MVP (miei)" },
+  { key: "worst_count", label: "👎 Peggiore (miei)" },
+  { key: "mvp_site_count", label: "🏆 MVP (siti)" },
+  { key: "worst_site_count", label: "👎 Peggiore (siti)" },
   { key: "xg", label: "xG", format: (v) => v.toFixed(2) },
   { key: "shots_total", label: "Tiri" },
   { key: "shots_on_target", label: "Tiri porta" },
@@ -100,6 +102,30 @@ export default function PlayersStatsTable({ players, theme }: { players: any[]; 
     return list;
   }, [players, sort]);
 
+  // barra di scorrimento anche in alto, sincronizzata con quella della tabella
+  const topRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [innerW, setInnerW] = useState(0);
+  const syncing = useRef(false);
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const upd = () => setInnerW(el.scrollWidth);
+    upd();
+    const ro = new ResizeObserver(upd);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, [players, sort]);
+  const sync = (from: "top" | "body") => {
+    if (syncing.current) return;
+    syncing.current = true;
+    const a = from === "top" ? topRef.current : bodyRef.current;
+    const b = from === "top" ? bodyRef.current : topRef.current;
+    if (a && b) b.scrollLeft = a.scrollLeft;
+    requestAnimationFrame(() => (syncing.current = false));
+  };
+
   const toggleSort = (key: SortKey) => {
     setSort((prev) => {
       if (prev.key !== key) return { key, dir: "desc" };
@@ -109,8 +135,12 @@ export default function PlayersStatsTable({ players, theme }: { players: any[]; 
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg" style={{ background: t.surface, border: `1px solid ${t.accent}33` }}>
-      <table className="w-full text-xs sm:text-sm">
+    <div className="rounded-lg" style={{ background: t.surface, border: `1px solid ${t.accent}33` }}>
+    <div ref={topRef} onScroll={() => sync("top")} className="overflow-x-auto" style={{ borderBottom: `1px solid ${t.accent}22` }}>
+      <div style={{ width: innerW, height: 1 }} />
+    </div>
+    <div ref={bodyRef} onScroll={() => sync("body")} className="overflow-x-auto">
+      <table className="w-full min-w-full text-xs sm:text-sm">
         <thead>
           <tr style={{ borderBottom: `1px solid ${t.accent}33` }} className="text-left text-xs uppercase">
             <th
@@ -165,6 +195,7 @@ export default function PlayersStatsTable({ players, theme }: { players: any[]; 
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

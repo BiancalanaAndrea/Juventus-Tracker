@@ -55,7 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   // MVP / peggiore in campo nelle partite di questo giocatore
-  let awards = { mvp: 0, worst: 0 };
+  let awards = { mvp: 0, worst: 0, mvp_site: 0, worst_site: 0 };
   const matchIds = history.map((h: any) => h.match_id);
   if (matchIds.length > 0 && player.position !== "CO") {
     const [{ data: allMine }, { data: allSite }, { data: coachRows }] = await Promise.all([

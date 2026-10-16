@@ -5,7 +5,7 @@ import { FORMATIONS, layoutLineup, sortBench } from "@/lib/formations";
 import PlayerPhoto from "./PlayerPhoto";
 import { ratingColors } from "@/lib/ratingColor";
 import type { CompetitionTheme } from "@/lib/competitionThemes";
-import { matchAwards } from "@/lib/awards";
+import { awardsBySource } from "@/lib/awards";
 
 function fmtRating(r: number) {
   return String(parseFloat(Number(r).toFixed(2)));
@@ -96,13 +96,13 @@ const hasActivity = (ps: any) =>
 
 type Award = "mvp" | "worst" | null;
 
-function AwardPill({ award, small }: { award: Award; small?: boolean }) {
+function AwardPill({ award, source, small }: { award: Award; source: "mine" | "site"; small?: boolean }) {
   if (!award) return null;
   const mvp = award === "mvp";
   return (
     <span
-      title={mvp ? "MVP della partita" : "Peggiore in campo"}
-      className={`flex items-center justify-center rounded-full ring-1 ${small ? "h-4 w-4 text-[9px]" : "h-5 w-5 text-[11px]"} leading-none`}
+      title={`${mvp ? "MVP" : "Peggiore"}${source === "site" ? " (voti dei siti)" : " (miei voti)"}`}
+      className={`flex items-center justify-center rounded-full ring-1 ring-black/40 ${small ? "h-3 w-3 text-[7px]" : "h-4 w-4 text-[9px]"} leading-none`}
       style={
         mvp
           ? { background: "#F5C518", color: "#0A0A0A", boxShadow: "0 0 0 1px rgba(0,0,0,0.4)" }
@@ -130,7 +130,8 @@ function RatingPill({ value, title, small }: { value: number; title: string; sma
 function PlayerNode({
   ps,
   rating,
-  award,
+  awardMine,
+  awardSite,
   replacedBy,
   replacesName,
   sub,
@@ -140,7 +141,8 @@ function PlayerNode({
 }: {
   ps: any;
   rating?: number | null;
-  award?: Award;
+  awardMine?: Award;
+  awardSite?: Award;
   replacedBy?: any;
   replacesName?: string | null;
   sub?: "in" | "out" | null;
@@ -172,10 +174,15 @@ function PlayerNode({
         >
           <PlayerPhoto url={p.photo_url} name={p.name} focusY={p.photo_focus_y} focusX={p.photo_focus_x} fallback={p.shirt_number ?? "?"} />
         </div>
-        {/* premio: MVP / peggiore (in alto a sinistra) */}
-        {award && (
-          <div className="absolute -left-2 -top-1.5 z-20">
-            <AwardPill award={award} />
+        {/* premi: sopra il mio voto (miei voti) e sopra il voto dei siti */}
+        {awardMine && rating != null && (
+          <div className="absolute bottom-3 -left-1 z-20 sm:-left-2">
+            <AwardPill award={awardMine} source="mine" />
+          </div>
+        )}
+        {awardSite && siteRating != null && (
+          <div className="absolute -right-2 bottom-3 z-20">
+            <AwardPill award={awardSite} source="site" />
           </div>
         )}
         {/* sostituzione (in alto a destra) */}
@@ -186,7 +193,7 @@ function PlayerNode({
         )}
         {/* cartellini */}
         {(ps.red_cards > 0 || ps.yellow_cards > 0) && (
-          <div className="absolute -left-2 top-1/2 z-10 -translate-y-1/2">
+          <div className="absolute -left-2 -top-1.5 z-10">
             <Pill title="Cartellino">{ps.red_cards > 0 ? "🟥" : "🟨"}</Pill>
           </div>
         )}
@@ -265,10 +272,10 @@ export default function LineupPitch({
   const { placed, formationLabel } = layoutLineup(starters, formation);
 
   // MVP e peggiore in campo (a pari merito possono essere più di uno)
-  const awards = matchAwards(
-    playerStats.map((ps) => ({ id: ps.player.id, mine: ratings[ps.player.id] ?? null, site: ps.site_rating }))
-  );
-  const awardOf = (id: number): Award => (awards.mvp.has(id) ? "mvp" : awards.worst.has(id) ? "worst" : null);
+  const entries = playerStats.map((ps) => ({ id: ps.player.id, mine: ratings[ps.player.id] ?? null, site: ps.site_rating }));
+  const aMine = awardsBySource(entries, "mine");
+  const aSite = awardsBySource(entries, "site");
+  const awardOf = (a: { mvp: Set<number>; worst: Set<number> }, id: number): Award => (a.mvp.has(id) ? "mvp" : a.worst.has(id) ? "worst" : null);
 
   // Abbina ogni titolare uscito al subentrato che ha preso il suo posto:
   // il minuto d'uscita (minuti giocati dal titolare) coincide col minuto d'ingresso (90 - minuti del subentrato).
@@ -415,7 +422,8 @@ export default function LineupPitch({
               <PlayerNode
                 ps={pl.ps}
                 rating={ratings[pl.ps.player.id] ?? null}
-                award={awardOf(pl.ps.player.id)}
+                awardMine={awardOf(aMine, pl.ps.player.id)}
+                awardSite={awardOf(aSite, pl.ps.player.id)}
                 replacedBy={replacedByMap.get(pl.ps.player.id)}
                 sub={subOf(pl.ps)}
                 selected={selected === pl.ps.player.id}
@@ -465,7 +473,8 @@ export default function LineupPitch({
                 key={ps.id}
                 ps={ps}
                 rating={ratings[ps.player.id] ?? null}
-                award={awardOf(ps.player.id)}
+                awardMine={awardOf(aMine, ps.player.id)}
+                awardSite={awardOf(aSite, ps.player.id)}
                 sub="in"
                 replacesName={replacesMap.has(ps.player.id) ? shortName(replacesMap.get(ps.player.id).player.name).toUpperCase() : null}
                 small
@@ -484,7 +493,7 @@ export default function LineupPitch({
           </p>
           <div className="grid grid-cols-5 gap-x-1 gap-y-6 rounded-xl bg-[#2a7338] px-2 py-5 ring-1 ring-white/10">
             {unused.map((ps) => (
-              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} award={awardOf(ps.player.id)} small />
+              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} awardMine={awardOf(aMine, ps.player.id)} awardSite={awardOf(aSite, ps.player.id)} small />
             ))}
           </div>
         </div>

@@ -64,6 +64,8 @@ export async function GET(req: NextRequest) {
         rated_matches: playerRatings.length,
         mvp_count: awardCounts.get(p.id)?.mvp ?? 0,
         worst_count: awardCounts.get(p.id)?.worst ?? 0,
+        mvp_site_count: awardCounts.get(p.id)?.mvp_site ?? 0,
+        worst_site_count: awardCounts.get(p.id)?.worst_site ?? 0,
         save_pct: extra.shots_on_target_against > 0 ? Math.round((sum("saves") / extra.shots_on_target_against) * 100) : null,
         dribble_success: dribA > 0 ? Math.round((extra.dribbles_won / dribA) * 100) : null,
         duel_success: duelT > 0 ? Math.round((extra.duels_won / duelT) * 100) : null,

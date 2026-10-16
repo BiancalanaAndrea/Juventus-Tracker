@@ -116,10 +116,12 @@ export default async function PlayerDetailPage({ params }: { params: { id: strin
       )}
 
       {!coach && (<>
-      <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 mb-8">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-8">
         <Stat label="Presenze" value={history.length} />
-        {awards && <Stat label="🏆 MVP" value={awards.mvp} />}
-        {awards && <Stat label="👎 Peggiore" value={awards.worst} />}
+        {awards && <Stat label="🏆 MVP (miei voti)" value={awards.mvp} />}
+        {awards && <Stat label="👎 Peggiore (miei voti)" value={awards.worst} />}
+        {awards && <Stat label="🏆 MVP (voti siti)" value={awards.mvp_site} />}
+        {awards && <Stat label="👎 Peggiore (voti siti)" value={awards.worst_site} />}
         <Stat label="Minuti" value={totals.minutes} />
         <Stat label="Gol" value={totals.goals} />
         <Stat label="Assist" value={totals.assists} />

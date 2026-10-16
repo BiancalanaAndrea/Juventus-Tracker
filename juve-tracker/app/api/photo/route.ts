@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024; // oltre ~4,5 MB Vercel non restituisce la risposta
 
 function isSafeUrl(raw: string): URL | null {
   let u: URL;
@@ -84,9 +84,23 @@ export async function GET(req: NextRequest) {
       type = (res.headers.get("content-type") || "").toLowerCase();
     }
 
-    if (!type.startsWith("image/")) return NextResponse.json({ error: "Il link non è un'immagine" }, { status: 415 });
-
     const buf = await res.arrayBuffer();
+    // alcuni siti dichiarano un tipo generico: riconosci l'immagine dai primi byte
+    if (!type.startsWith("image/")) {
+      const b = new Uint8Array(buf.slice(0, 12));
+      const hex = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+      const sniff = hex.startsWith("ffd8ff")
+        ? "image/jpeg"
+        : hex.startsWith("89504e47")
+        ? "image/png"
+        : hex.startsWith("47494638")
+        ? "image/gif"
+        : hex.startsWith("52494646") && hex.slice(16, 24) === "57454250"
+        ? "image/webp"
+        : null;
+      if (!sniff) return NextResponse.json({ error: "Il link non è un'immagine" }, { status: 415 });
+      type = sniff;
+    }
     if (buf.byteLength > MAX_BYTES) return NextResponse.json({ error: "Immagine troppo grande" }, { status: 413 });
 
     return new NextResponse(buf, {

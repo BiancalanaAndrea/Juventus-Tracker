@@ -148,7 +148,7 @@ function parsePairs(line: string): Record<string, string> {
 }
 
 function num(v: string): number | null {
-  const n = Number(v.replace("%", "").replace(",", ".").trim());
+  const n = Number(v.replace("%", "").replace("*", "").replace(",", ".").trim());
   return Number.isFinite(n) ? n : null;
 }
 

@@ -8,6 +8,7 @@ import { getTheme, getPageBackground } from "@/lib/competitionThemes";
 import RatingPicker from "./RatingPicker";
 import BackButton from "./BackButton";
 import RosterPicker from "./RosterPicker";
+import PlayerPhoto from "./PlayerPhoto";
 import LineupPitch from "./LineupPitch";
 import MatchTop3 from "./MatchTop3";
 import { layoutLineup, sortBench } from "@/lib/formations";
@@ -602,7 +603,12 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
           <div className="space-y-3">
             {[matchCoach].map((c: any) => (
               <div key={c.id} className="card p-3 flex items-center justify-between flex-wrap gap-2">
-                <span className="text-sm font-medium">{c.name}</span>
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-neutral-700 ring-1 ring-white/20">
+                    <PlayerPhoto url={c.photo_url} name={c.name} focusY={c.photo_focus_y} focusX={c.photo_focus_x} fallbackClassName="text-[11px]" />
+                  </span>
+                  {c.name}
+                </span>
                 <RatingPicker
                   matchId={match.id}
                   playerId={c.id}
@@ -631,6 +637,9 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
                   <div key={ps.id} className="card p-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2">
+                        <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-neutral-700 ring-1 ring-white/20">
+                          <PlayerPhoto url={ps.player.photo_url} name={ps.player.name} focusY={ps.player.photo_focus_y} focusX={ps.player.photo_focus_x} fallback={ps.player.shirt_number ?? "?"} fallbackClassName="text-[11px]" />
+                        </div>
                         <span className="text-sm font-medium">
                           #{ps.player.shirt_number} {ps.player.name}
                         </span>
