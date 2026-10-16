@@ -24,7 +24,7 @@ export async function attachPhases<T extends { id: number }>(db: any, matches: T
       db.from("match_team_stats").select("match_id").eq("side", "juve").or("possession.not.is.null,shots_total.not.is.null")
     ),
     fetchAllIds(() =>
-      db.from("match_player_stats").select("match_id").or("minutes_played.gt.0,passes_total.gt.0,shots_total.gt.0")
+      db.from("match_player_stats").select("match_id").or("passes_total.gt.0,passes_accurate.gt.0,shots_total.gt.0,touches.gt.0,xg.gt.0")
     ),
     fetchAllIds(() => db.from("match_player_stats").select("match_id")),
     fetchAllIds(() => db.from("ratings").select("match_id")),
