@@ -190,6 +190,16 @@ function PlayerNode({
             <Pill title="Cartellino">{ps.red_cards > 0 ? "🟥" : "🟨"}</Pill>
           </div>
         )}
+        {/* voto dei siti (in basso a destra) */}
+        {siteRating != null && (
+          <span
+            title="Voto dei siti"
+            className="absolute -bottom-1.5 -right-2 z-10 rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none ring-1 ring-white/50"
+            style={{ background: ratingColors(siteRating).bg, color: ratingColors(siteRating).text }}
+          >
+            {siteRating.toFixed(1)}
+          </span>
+        )}
         {/* il mio voto */}
         {rating != null && (
           <span
@@ -209,15 +219,6 @@ function PlayerNode({
           {p.shirt_number ?? "-"}
           {minute ? ` · ${minute}` : ""}
         </span>
-        {siteRating != null && (
-          <span
-            title="Voto dei siti"
-            className="rounded px-1 py-px text-[9px] font-bold leading-none ring-1 ring-white/50"
-            style={{ background: ratingColors(siteRating).bg, color: ratingColors(siteRating).text }}
-          >
-            {siteRating.toFixed(1)}
-          </span>
-        )}
       </p>
       {replacesName && (
         <p className="max-w-full truncate text-[10px] leading-tight text-white/80" title="Entrato al posto di">
