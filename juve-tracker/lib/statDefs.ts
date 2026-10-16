@@ -14,7 +14,6 @@ export const PLAYER_EXTRA_GROUPS: { title: string; stats: StatDef[] }[] = [
     title: "Attacco",
     stats: [
       { key: "xg", label: "xG", decimals: 2 },
-      { key: "xa", label: "xA", decimals: 2 },
       { key: "big_chances_created", label: "Grandi occasioni create" },
       { key: "big_chances_missed", label: "Grandi occasioni sbagliate" },
       { key: "shots_off_target", label: "Tiri fuori" },

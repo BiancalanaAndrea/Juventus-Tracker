@@ -252,7 +252,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={getPageBackground(theme)}>
-      <div className={`mx-auto px-4 py-8 md:px-8 ${match.status === "FINISHED" ? "max-w-5xl" : "max-w-3xl"}`}>
+      <div className={`mx-auto px-4 py-8 md:px-8 ${match.status === "FINISHED" ? "max-w-[96rem]" : "max-w-3xl"}`}>
       <BackButton color={theme.textMuted} />
       <div
         className="rounded-lg p-5 mb-6"
@@ -524,7 +524,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
           <h2 className="text-sm font-medium uppercase tracking-wide mb-3" style={{ color: theme.text, opacity: 0.7 }}>
             Formazione in campo
           </h2>
-          <div className="grid gap-6 lg:grid-cols-[28rem_minmax(0,1fr)]">
+          <div className="grid gap-6 lg:grid-cols-[26rem_minmax(0,1fr)]">
             <div className="min-w-0">
             <LineupPitch
               matchId={match.id}

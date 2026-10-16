@@ -71,11 +71,11 @@ export default function MatchTop3({
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accent }}>
         I migliori della partita
       </p>
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map(({ cat, rows }) => (
-          <div key={cat.title} className="card min-w-0 px-3 py-2.5">
+          <div key={cat.title} className="card min-w-0 px-2.5 py-2">
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-steel">{cat.title}</p>
-            <ol className="space-y-1.5">
+            <ol className="space-y-1">
               {rows.map(({ ps, v }, i) => {
                 const p = ps.player;
                 const col = cat.colored ? ratingColors(v) : null;

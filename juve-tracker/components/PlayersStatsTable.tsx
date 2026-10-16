@@ -40,7 +40,6 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: number) => string }[]
   { key: "mvp_count", label: "🏆 MVP" },
   { key: "worst_count", label: "👎 Peggiore" },
   { key: "xg", label: "xG", format: (v) => v.toFixed(2) },
-  { key: "xa", label: "xA", format: (v) => v.toFixed(2) },
   { key: "shots_total", label: "Tiri" },
   { key: "shots_on_target", label: "Tiri porta" },
   { key: "shot_accuracy", label: "% Tiri in porta", format: (v) => `${v}%` },
