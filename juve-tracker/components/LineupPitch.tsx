@@ -185,18 +185,6 @@ function PlayerNode({
             <AwardPill award={awardSite} source="site" />
           </div>
         )}
-        {/* sostituzione (in alto a destra) */}
-        {sub && (
-          <div className="absolute -right-2 -top-1.5 z-10">
-            <SubArrow dir={sub} />
-          </div>
-        )}
-        {/* cartellini */}
-        {(ps.red_cards > 0 || ps.yellow_cards > 0) && (
-          <div className="absolute -left-2 -top-1.5 z-10">
-            <Pill title="Cartellino">{ps.red_cards > 0 ? "🟥" : "🟨"}</Pill>
-          </div>
-        )}
         {/* voto dei siti (in basso a destra) */}
         {siteRating != null && (
           <span
@@ -222,10 +210,20 @@ function PlayerNode({
         {fieldName(p.name)}
       </p>
       <p className="flex items-center justify-center gap-1 text-[10px] leading-tight text-white/70">
+        {sub && (
+          <span style={{ color: sub === "in" ? "#2FBE72" : "#E14B4B" }} title={sub === "in" ? "Subentrato" : "Sostituito"}>
+            {sub === "in" ? "▲" : "▼"}
+          </span>
+        )}
         <span>
           {p.shirt_number ?? "-"}
           {minute ? ` · ${minute}` : ""}
         </span>
+        {(ps.red_cards > 0 || ps.yellow_cards > 0) && (
+          <span title="Cartellino" className="text-[9px] leading-none">
+            {ps.red_cards > 0 ? "🟥" : "🟨"}
+          </span>
+        )}
       </p>
       {replacesName && (
         <p className="max-w-full truncate text-[10px] leading-tight text-white/80" title="Entrato al posto di">

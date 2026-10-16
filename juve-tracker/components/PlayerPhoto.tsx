@@ -62,7 +62,17 @@ export default function PlayerPhoto({
   // 0 = indirizzo originale, 1 = scaricata dal nostro server, 2 = tramite servizio di ridimensionamento
   // (aggira i blocchi dei siti e le foto troppo pesanti), 3 = non disponibile
   const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
-  useEffect(() => setStage(0), [direct]);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setStage(0);
+    setLoaded(false);
+  }, [direct]);
+  // se la foto non arriva entro pochi secondi (o arriva vuota) prova il metodo successivo
+  useEffect(() => {
+    if (!direct || loaded || stage >= 3) return;
+    const t = setTimeout(() => setStage((st) => (st < 3 ? ((st + 1) as 0 | 1 | 2 | 3) : st)), 5000);
+    return () => clearTimeout(t);
+  }, [direct, loaded, stage]);
 
   const src = !direct
     ? null
@@ -88,6 +98,10 @@ export default function PlayerPhoto({
       className="h-full w-full object-cover"
       style={photoImgStyle(focusY, focusX)}
       referrerPolicy="no-referrer"
+      onLoad={(e) => {
+        if ((e.currentTarget as HTMLImageElement).naturalWidth > 1) setLoaded(true);
+        else setStage((st) => (st < 3 ? ((st + 1) as 0 | 1 | 2 | 3) : st));
+      }}
       onError={() => setStage((st) => (st === 0 ? 1 : st === 1 ? 2 : 3))}
     />
   );
