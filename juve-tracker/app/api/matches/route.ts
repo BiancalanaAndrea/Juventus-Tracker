@@ -3,6 +3,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { attachPhases } from "@/lib/matchPhase";
 
 // GET: lista partite, filtrabile per competizione (?competition=serie_a)
 export async function GET(req: NextRequest) {
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ matches: data });
+  return NextResponse.json({ matches: await attachPhases(db, data || []) });
 }
 
 // POST: crea una nuova partita a mano

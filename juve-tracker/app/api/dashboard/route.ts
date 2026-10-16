@@ -4,6 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { matchOutcome } from "@/lib/types";
+import { attachPhases } from "@/lib/matchPhase";
 
 export async function GET() {
   let matches: any[] | null = null;
@@ -17,7 +18,7 @@ export async function GET() {
       console.error("Errore /api/dashboard:", res.error.message);
       return NextResponse.json({ error: res.error.message }, { status: 500 });
     }
-    matches = res.data;
+    matches = await attachPhases(db, res.data || []);
   } catch (e: any) {
     const cause = e?.cause?.message ? ` (${e.cause.message})` : "";
     console.error("Errore /api/dashboard:", e?.message, cause);

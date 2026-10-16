@@ -9,6 +9,8 @@
 
 html {
   scroll-padding-top: env(safe-area-inset-top, 0px);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -19,6 +21,8 @@ body {
   background-attachment: fixed;
   color: #F7F7F5;
   font-family: var(--font-body);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 .scoreboard {

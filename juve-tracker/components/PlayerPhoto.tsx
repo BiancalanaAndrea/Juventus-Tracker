@@ -39,11 +39,14 @@ export default function PlayerPhoto({
   fallback?: string | number | null;
   fallbackClassName?: string;
 }) {
-  const src = cleanPhotoUrl(url);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
+  const direct = cleanPhotoUrl(url);
+  // 0 = indirizzo originale, 1 = scaricata dal nostro server, 2 = non disponibile
+  const [stage, setStage] = useState<0 | 1 | 2>(0);
+  useEffect(() => setStage(0), [direct]);
 
-  if (!src || failed) {
+  const src = direct && stage === 1 ? `/api/photo?u=${encodeURIComponent(direct)}` : direct;
+
+  if (!src || stage === 2) {
     return (
       <span className={`flex h-full w-full items-center justify-center font-semibold text-white/80 ${fallbackClassName}`}>
         {fallback ?? initials(name)}
@@ -53,13 +56,13 @@ export default function PlayerPhoto({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      key={src}
       src={src}
       alt={name || ""}
       className="h-full w-full object-cover"
       style={photoImgStyle(focusY, focusX)}
       referrerPolicy="no-referrer"
-      loading="lazy"
-      onError={() => setFailed(true)}
+      onError={() => setStage((st) => (st === 0 ? 1 : 2))}
     />
   );
 }

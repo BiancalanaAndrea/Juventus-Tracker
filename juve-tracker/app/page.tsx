@@ -92,12 +92,12 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2 mb-10">
-        <section className="card p-5">
+      <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-2 mb-10">
+        <section className="card min-w-0 p-5">
           <p className="text-sm uppercase tracking-wide text-steel mb-3 font-medium">Ultima partita</p>
           {lastMatch ? <MatchCard match={lastMatch} large /> : <EmptyState label="Nessuna partita giocata ancora" />}
         </section>
-        <section className="card p-5">
+        <section className="card min-w-0 p-5">
           <p className="text-sm uppercase tracking-wide text-steel mb-3 font-medium">Prossima partita</p>
           {nextMatch ? <MatchCard match={nextMatch} large /> : <EmptyState label="Nessuna partita in programma" />}
         </section>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
         {lastFive.length === 0 ? (
           <EmptyState label="Nessuna partita giocata ancora" />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {lastFive.map((m: any) => (
               <MatchCard key={m.id} match={m} large />
             ))}
