@@ -132,8 +132,7 @@ function PlayerNode({
   rating,
   award,
   replacedBy,
-  replacedByRating,
-  replacedByAward,
+  replacesName,
   sub,
   selected,
   onClick,
@@ -143,8 +142,7 @@ function PlayerNode({
   rating?: number | null;
   award?: Award;
   replacedBy?: any;
-  replacedByRating?: number | null;
-  replacedByAward?: Award;
+  replacesName?: string | null;
   sub?: "in" | "out" | null;
   selected?: boolean;
   onClick?: () => void;
@@ -155,15 +153,13 @@ function PlayerNode({
   const minute =
     sub === "out" ? `${ps.minutes_played}′` : sub === "in" ? `~${Math.max(1, 90 - (ps.minutes_played || 0))}′` : null;
   const siteRating = ps.site_rating != null ? Number(ps.site_rating) : null;
-  const subSite = replacedBy?.site_rating != null ? Number(replacedBy.site_rating) : null;
-  const hasSubPills = !!replacedBy && (replacedByRating != null || subSite != null);
   return (
     <button
       type="button"
       onClick={onClick}
       className={`group flex flex-col items-center ${small ? "w-full" : "w-16 sm:w-20"} ${onClick ? "cursor-pointer" : "cursor-default"}`}
     >
-      <div className={`relative ${hasSubPills ? "mb-4" : ""}`}>
+      <div className="relative">
         {/* gol e assist sopra la foto */}
         <div className="absolute -top-2.5 left-1/2 z-10 flex -translate-x-1/2 gap-0.5">
           <Repeat n={ps.assists || 0} icon="👟" title="Assist" />
@@ -204,31 +200,6 @@ function PlayerNode({
             {fmtRating(rating)}
           </span>
         )}
-        {/* chi è entrato al suo posto: foto a destra, voti centrati sotto la foto */}
-        {replacedBy && (
-          <div className="absolute -right-3 top-1/2 z-20 flex flex-col items-center sm:-right-6">
-            <div className="relative">
-              <div className="h-6 w-6 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-[#2FBE72] sm:h-7 sm:w-7">
-                <PlayerPhoto url={replacedBy.player.photo_url} name={replacedBy.player.name} focusY={replacedBy.player.photo_focus_y} focusX={replacedBy.player.photo_focus_x} fallback={replacedBy.player.shirt_number ?? "?"} fallbackClassName="text-[9px]" />
-              </div>
-              {replacedByAward && (
-                <div className="absolute -left-2 -top-2">
-                  <AwardPill award={replacedByAward} small />
-                </div>
-              )}
-            </div>
-            {hasSubPills && (
-              <div className="mt-0.5 flex items-center justify-center gap-0.5">
-                {replacedByRating != null && <RatingPill value={parseFloat(Number(replacedByRating).toFixed(2))} title="Il mio voto al subentrato" small />}
-                {subSite != null && (
-                  <span title="Voto dei siti al subentrato" className="rounded px-1 py-px text-[8px] font-bold leading-none ring-1 ring-white/50" style={{ background: ratingColors(subSite).bg, color: ratingColors(subSite).text }}>
-                    {subSite.toFixed(1)}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
       <p className="mt-1.5 max-w-full truncate text-[11px] font-medium leading-tight text-white drop-shadow sm:text-xs">
         {fieldName(p.name)}
@@ -248,16 +219,15 @@ function PlayerNode({
           </span>
         )}
       </p>
+      {replacesName && (
+        <p className="max-w-full truncate text-[10px] leading-tight text-white/80" title="Entrato al posto di">
+          per {replacesName}
+        </p>
+      )}
       {replacedBy && (
         <p className="max-w-full truncate text-[10px] font-medium leading-tight" style={{ color: "#6EE7A0" }}>
           ↑ {shortName(replacedBy.player.name).toUpperCase()}
           {(replacedBy.minutes_played || 0) > 0 ? ` ${90 - replacedBy.minutes_played}′` : ""}
-        </p>
-      )}
-      {replacedBy && ((replacedBy.goals || 0) > 0 || (replacedBy.assists || 0) > 0) && (
-        <p className="whitespace-nowrap text-[10px] leading-tight" title="Gol e assist del subentrato">
-          {iconsText(replacedBy.goals || 0, "⚽")}
-          {iconsText(replacedBy.assists || 0, "👟")}
         </p>
       )}
     </button>
@@ -333,6 +303,12 @@ export default function LineupPitch({
     }
   }
   const pairedSubs = new Set<any>([...replacedByMap.values()]);
+  // subentrato (id) -> titolare che ha sostituito
+  const replacesMap = new Map<number, any>();
+  starters.forEach((st) => {
+    const sub = replacedByMap.get(st.player.id);
+    if (sub) replacesMap.set(sub.player.id, st);
+  });
   const changeFormation = async (value: string) => {
     setMsg(null);
     const res = await fetch(`/api/matches/${matchId}`, {
@@ -440,12 +416,6 @@ export default function LineupPitch({
                 rating={ratings[pl.ps.player.id] ?? null}
                 award={awardOf(pl.ps.player.id)}
                 replacedBy={replacedByMap.get(pl.ps.player.id)}
-                replacedByAward={replacedByMap.get(pl.ps.player.id) ? awardOf(replacedByMap.get(pl.ps.player.id).player.id) : null}
-                replacedByRating={
-                  replacedByMap.get(pl.ps.player.id)
-                    ? ratings[replacedByMap.get(pl.ps.player.id).player.id] ?? null
-                    : null
-                }
                 sub={subOf(pl.ps)}
                 selected={selected === pl.ps.player.id}
                 onClick={() => swap(pl.ps.player.id)}
@@ -490,7 +460,15 @@ export default function LineupPitch({
           </p>
           <div className="grid grid-cols-5 gap-x-1 gap-y-6 rounded-xl bg-[#2a7338] px-2 py-5 ring-1 ring-white/10">
             {entered.map((ps) => (
-              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} award={awardOf(ps.player.id)} sub="in" small />
+              <PlayerNode
+                key={ps.id}
+                ps={ps}
+                rating={ratings[ps.player.id] ?? null}
+                award={awardOf(ps.player.id)}
+                sub="in"
+                replacesName={replacesMap.has(ps.player.id) ? shortName(replacesMap.get(ps.player.id).player.name).toUpperCase() : null}
+                small
+              />
             ))}
           </div>
           <p className="mt-1 text-[10px]" style={{ color: theme.textMuted }}>

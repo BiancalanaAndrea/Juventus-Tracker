@@ -1,3 +1,4 @@
+import { fmt as fmtDt } from "@/lib/datetime";
 import Link from "next/link";
 import { matchOutcome } from "@/lib/types";
 import { getTheme, type CompetitionTheme } from "@/lib/competitionThemes";
@@ -32,7 +33,7 @@ function PhaseIcon({ phase }: { phase: number }) {
 
 export default function MatchCard({ match, theme, large }: { match: any; theme?: CompetitionTheme; large?: boolean }) {
   const outcome = matchOutcome(match);
-  const date = new Date(match.match_date);
+  const iso: string = match.match_date;
   const t = theme ?? getTheme("all");
   const outcomeColor = OUTCOME_COLOR[outcome];
 
@@ -51,16 +52,16 @@ export default function MatchCard({ match, theme, large }: { match: any; theme?:
             {match.is_home ? "Juventus" : match.opponent_name} vs {match.is_home ? match.opponent_name : "Juventus"}
           </p>
           <p className={large ? "text-sm" : "text-sm"} style={{ color: t.textMuted }}>
-            {date.toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
+            {fmtDt(iso, { day: "2-digit", month: "short", year: "numeric" })}
             {" · "}
-            {date.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+            {fmtDt(iso, { hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <div className={`scoreboard ${large ? "text-3xl" : "text-2xl"}`} style={{ color: outcomeColor }}>
             {match.status === "FINISHED"
               ? `${match.juve_score}-${match.opponent_score}`
-              : date.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}
+              : fmtDt(iso, { day: "2-digit", month: "2-digit" })}
           </div>
           <PhaseIcon phase={match.phase ?? 1} />
         </div>

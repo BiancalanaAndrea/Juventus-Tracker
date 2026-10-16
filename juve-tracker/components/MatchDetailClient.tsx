@@ -1,5 +1,6 @@
 "use client";
 
+import { fmt as fmtDt, fromInput, toInput } from "@/lib/datetime";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { matchOutcome, POSITION_ORDER, POSITION_LABELS } from "@/lib/types";
@@ -43,7 +44,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
   const [importLog, setImportLog] = useState<string[] | null>(null);
 
   const [form, setForm] = useState({
-    match_date: match.match_date?.slice(0, 16) ?? "",
+    match_date: toInput(match.match_date),
     venue: match.venue ?? "",
     notes: match.notes ?? "",
     opponent_name: match.opponent_name ?? "",
@@ -174,7 +175,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        match_date: new Date(form.match_date).toISOString(),
+        match_date: fromInput(form.match_date),
         venue: form.venue,
         notes: form.notes,
         opponent_name: form.opponent_name,
@@ -188,7 +189,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
     if (res.ok) {
       setMatch({
         ...match,
-        match_date: new Date(form.match_date).toISOString(),
+        match_date: fromInput(form.match_date),
         venue: form.venue,
         notes: form.notes,
         opponent_name: form.opponent_name,
@@ -274,7 +275,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
           </p>
         )}
         <p className="text-sm mt-2" style={{ color: theme.textMuted }}>
-          {new Date(match.match_date).toLocaleString("it-IT", {
+          {fmtDt(match.match_date, {
             weekday: "long",
             day: "2-digit",
             month: "long",

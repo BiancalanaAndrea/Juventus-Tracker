@@ -11,7 +11,7 @@ export default function SeasonSwitcher({ className = "" }: { className?: string 
 
   return (
     <label className={`flex items-center gap-2 text-xs ${className}`}>
-      <span className="uppercase tracking-wide opacity-60">Stagione</span>
+      <span className="hidden uppercase tracking-wide opacity-60 md:inline">Stagione</span>
       <select
         value={season}
         onChange={(e) => {
@@ -21,7 +21,7 @@ export default function SeasonSwitcher({ className = "" }: { className?: string 
             }
           } else setSeason(Number(e.target.value));
         }}
-        className="rounded-md border border-line bg-surface px-2 py-1 text-sm font-medium"
+        className="w-auto max-w-[9rem] rounded-md border border-line bg-surface px-2 py-1 text-sm font-medium"
         aria-label="Cambia stagione"
       >
         {seasons.map((s) => (
@@ -29,7 +29,7 @@ export default function SeasonSwitcher({ className = "" }: { className?: string 
             {seasonLabel(s)}
           </option>
         ))}
-        <option value={NEW}>+ Nuova stagione ({seasonLabel(next)})</option>
+        <option value={NEW}>+ Nuova</option>
       </select>
     </label>
   );

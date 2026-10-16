@@ -5,6 +5,7 @@ import PlayerActions from "@/components/PlayerActions";
 import PlayerPhoto from "@/components/PlayerPhoto";
 import { PLAYER_EXTRA_GROUPS, ALL_EXTRA_KEYS, fmtStat } from "@/lib/statDefs";
 import { ratingColors } from "@/lib/ratingColor";
+import { fmt as fmtDt } from "@/lib/datetime";
 
 async function getPlayer(id: string) {
   const h = headers();
@@ -101,7 +102,7 @@ export default async function PlayerDetailPage({ params }: { params: { id: strin
                 {coach.matches.map((m: any) => (
                   <tr key={m.id} className="border-b border-line last:border-0">
                     <td className="px-3 py-2 text-steel">
-                      {new Date(m.match_date).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}
+                      {fmtDt(m.match_date, { day: "2-digit", month: "2-digit" })}
                     </td>
                     <td className="px-3 py-2">{m.opponent_name}</td>
                     <td className="px-3 py-2">{m.juve_score}-{m.opponent_score}</td>
@@ -202,7 +203,7 @@ export default async function PlayerDetailPage({ params }: { params: { id: strin
             {history.map((h: any) => (
               <tr key={h.id} className="border-b border-line last:border-0">
                 <td className="px-3 py-2 text-steel">
-                  {new Date(h.match.match_date).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}
+                  {fmtDt(h.match.match_date, { day: "2-digit", month: "2-digit" })}
                 </td>
                 <td className="px-3 py-2">{h.match.opponent_name}</td>
                 <td className="px-3 py-2">{h.minutes_played}′</td>

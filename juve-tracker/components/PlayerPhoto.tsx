@@ -28,7 +28,7 @@ export function cleanPhotoUrl(url?: string | null): string | null {
     } catch {}
   }
 
-  return u.replace(/ /g, "%20");
+  return u.replace(/ /g, "%20").replace(/[^\x00-\x7F]/g, (c) => encodeURIComponent(c));
 }
 
 function initials(name?: string | null) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import RosterPicker from "./RosterPicker";
 import { FORMATIONS } from "@/lib/formations";
+import { fromInput } from "@/lib/datetime";
 
 const COMPETITIONS = [
   { value: "serie_a", label: "Serie A" },
@@ -81,6 +82,7 @@ export default function NewMatchForm({ onClose }: { onClose: () => void }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        match_date: fromInput(form.match_date),
         formation: form.status === "FINISHED" && form.formation ? form.formation : undefined,
         coach_id: form.coach_id ? Number(form.coach_id) : undefined,
         is_home: form.is_home === "true",
