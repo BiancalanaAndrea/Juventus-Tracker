@@ -5,6 +5,7 @@ import { FORMATIONS, layoutLineup, sortBench } from "@/lib/formations";
 import PlayerPhoto from "./PlayerPhoto";
 import { ratingColors } from "@/lib/ratingColor";
 import type { CompetitionTheme } from "@/lib/competitionThemes";
+import { matchAwards } from "@/lib/awards";
 
 function fmtRating(r: number) {
   return String(parseFloat(Number(r).toFixed(2)));
@@ -93,11 +94,46 @@ const hasActivity = (ps: any) =>
     (k) => (ps[k] || 0) > 0
   );
 
+type Award = "mvp" | "worst" | null;
+
+function AwardPill({ award, small }: { award: Award; small?: boolean }) {
+  if (!award) return null;
+  const mvp = award === "mvp";
+  return (
+    <span
+      title={mvp ? "MVP della partita" : "Peggiore in campo"}
+      className={`flex items-center justify-center rounded-full ring-1 ${small ? "h-4 w-4 text-[9px]" : "h-5 w-5 text-[11px]"} leading-none`}
+      style={
+        mvp
+          ? { background: "#F5C518", color: "#0A0A0A", boxShadow: "0 0 0 1px rgba(0,0,0,0.4)" }
+          : { background: "#E14B4B", color: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,0.4)" }
+      }
+    >
+      {mvp ? "🏆" : "👎"}
+    </span>
+  );
+}
+
+function RatingPill({ value, title, small }: { value: number; title: string; small?: boolean }) {
+  const c = ratingColors(value);
+  return (
+    <span
+      title={title}
+      className={`rounded font-bold leading-none ring-1 ring-black/40 ${small ? "px-1 py-px text-[8px]" : "px-1.5 py-0.5 text-[10px]"}`}
+      style={{ background: c.bg, color: c.text }}
+    >
+      {value}
+    </span>
+  );
+}
+
 function PlayerNode({
   ps,
   rating,
+  award,
   replacedBy,
   replacedByRating,
+  replacedByAward,
   sub,
   selected,
   onClick,
@@ -105,8 +141,10 @@ function PlayerNode({
 }: {
   ps: any;
   rating?: number | null;
+  award?: Award;
   replacedBy?: any;
   replacedByRating?: number | null;
+  replacedByAward?: Award;
   sub?: "in" | "out" | null;
   selected?: boolean;
   onClick?: () => void;
@@ -116,13 +154,16 @@ function PlayerNode({
   const size = small ? "h-11 w-11" : "h-12 w-12 sm:h-14 sm:w-14";
   const minute =
     sub === "out" ? `${ps.minutes_played}′` : sub === "in" ? `~${Math.max(1, 90 - (ps.minutes_played || 0))}′` : null;
+  const siteRating = ps.site_rating != null ? Number(ps.site_rating) : null;
+  const subSite = replacedBy?.site_rating != null ? Number(replacedBy.site_rating) : null;
+  const hasSubPills = !!replacedBy && (replacedByRating != null || subSite != null);
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group flex w-16 flex-col items-center sm:w-20 ${onClick ? "cursor-pointer" : "cursor-default"}`}
+      className={`group flex flex-col items-center ${small ? "w-full" : "w-16 sm:w-20"} ${onClick ? "cursor-pointer" : "cursor-default"}`}
     >
-      <div className="relative">
+      <div className={`relative ${hasSubPills ? "mb-4" : ""}`}>
         {/* gol e assist sopra la foto */}
         <div className="absolute -top-2.5 left-1/2 z-10 flex -translate-x-1/2 gap-0.5">
           <Repeat n={ps.assists || 0} icon="👟" title="Assist" />
@@ -135,9 +176,15 @@ function PlayerNode({
         >
           <PlayerPhoto url={p.photo_url} name={p.name} focusY={p.photo_focus_y} focusX={p.photo_focus_x} fallback={p.shirt_number ?? "?"} />
         </div>
-        {/* sostituzione */}
+        {/* premio: MVP / peggiore (in alto a sinistra) */}
+        {award && (
+          <div className="absolute -left-2 -top-1.5 z-20">
+            <AwardPill award={award} />
+          </div>
+        )}
+        {/* sostituzione (in alto a destra) */}
         {sub && (
-          <div className="absolute -right-2 top-1/2 z-10 -translate-y-1/2">
+          <div className="absolute -right-2 -top-1.5 z-10">
             <SubArrow dir={sub} />
           </div>
         )}
@@ -157,41 +204,49 @@ function PlayerNode({
             {fmtRating(rating)}
           </span>
         )}
-        {/* chi è entrato al suo posto */}
+        {/* chi è entrato al suo posto: foto a destra, voti centrati sotto la foto */}
         {replacedBy && (
-          <div className="absolute -bottom-2 -right-3 z-20 flex sm:-right-6 flex-col items-center">
+          <div className="absolute -right-3 top-1/2 z-20 flex flex-col items-center sm:-right-6">
             <div className="relative">
               <div className="h-6 w-6 overflow-hidden rounded-full bg-neutral-700 ring-2 ring-[#2FBE72] sm:h-7 sm:w-7">
                 <PlayerPhoto url={replacedBy.player.photo_url} name={replacedBy.player.name} focusY={replacedBy.player.photo_focus_y} focusX={replacedBy.player.photo_focus_x} fallback={replacedBy.player.shirt_number ?? "?"} fallbackClassName="text-[9px]" />
               </div>
-              {replacedByRating != null && (
-                <span
-                  className="absolute -bottom-1 -right-1 rounded px-0.5 py-px text-[8px] sm:-right-2 sm:px-1 font-bold leading-none ring-1 ring-black/40"
-                  style={{ background: ratingColors(replacedByRating).bg, color: ratingColors(replacedByRating).text }}
-                >
-                  {fmtRating(replacedByRating)}
-                </span>
+              {replacedByAward && (
+                <div className="absolute -left-2 -top-2">
+                  <AwardPill award={replacedByAward} small />
+                </div>
               )}
             </div>
+            {hasSubPills && (
+              <div className="mt-0.5 flex items-center justify-center gap-0.5">
+                {replacedByRating != null && <RatingPill value={parseFloat(Number(replacedByRating).toFixed(2))} title="Il mio voto al subentrato" small />}
+                {subSite != null && (
+                  <span title="Voto dei siti al subentrato" className="rounded px-1 py-px text-[8px] font-bold leading-none ring-1 ring-white/50" style={{ background: ratingColors(subSite).bg, color: ratingColors(subSite).text }}>
+                    {subSite.toFixed(1)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-        )}
-        {/* voto dei siti */}
-        {ps.site_rating != null && (
-          <span
-            className="absolute -bottom-1.5 -right-2 z-10 rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none ring-1 ring-white/50"
-            style={{ background: ratingColors(Number(ps.site_rating)).bg, color: ratingColors(Number(ps.site_rating)).text }}
-            title="Voto dei siti"
-          >
-            {Number(ps.site_rating).toFixed(1)}
-          </span>
         )}
       </div>
       <p className="mt-1.5 max-w-full truncate text-[11px] font-medium leading-tight text-white drop-shadow sm:text-xs">
         {fieldName(p.name)}
       </p>
-      <p className="text-[10px] leading-tight text-white/70">
-        {p.shirt_number ?? "-"}
-        {minute ? ` · ${minute}` : ""}
+      <p className="flex items-center justify-center gap-1 text-[10px] leading-tight text-white/70">
+        <span>
+          {p.shirt_number ?? "-"}
+          {minute ? ` · ${minute}` : ""}
+        </span>
+        {siteRating != null && (
+          <span
+            title="Voto dei siti"
+            className="rounded px-1 py-px text-[9px] font-bold leading-none ring-1 ring-white/50"
+            style={{ background: ratingColors(siteRating).bg, color: ratingColors(siteRating).text }}
+          >
+            {siteRating.toFixed(1)}
+          </span>
+        )}
       </p>
       {replacedBy && (
         <p className="max-w-full truncate text-[10px] font-medium leading-tight" style={{ color: "#6EE7A0" }}>
@@ -237,6 +292,12 @@ export default function LineupPitch({
   const unused = bench.filter((ps) => !hasActivity(ps));
 
   const { placed, formationLabel } = layoutLineup(starters, formation);
+
+  // MVP e peggiore in campo (a pari merito possono essere più di uno)
+  const awards = matchAwards(
+    playerStats.map((ps) => ({ id: ps.player.id, mine: ratings[ps.player.id] ?? null, site: ps.site_rating }))
+  );
+  const awardOf = (id: number): Award => (awards.mvp.has(id) ? "mvp" : awards.worst.has(id) ? "worst" : null);
 
   // Abbina ogni titolare uscito al subentrato che ha preso il suo posto:
   // il minuto d'uscita (minuti giocati dal titolare) coincide col minuto d'ingresso (90 - minuti del subentrato).
@@ -377,7 +438,9 @@ export default function LineupPitch({
               <PlayerNode
                 ps={pl.ps}
                 rating={ratings[pl.ps.player.id] ?? null}
+                award={awardOf(pl.ps.player.id)}
                 replacedBy={replacedByMap.get(pl.ps.player.id)}
+                replacedByAward={replacedByMap.get(pl.ps.player.id) ? awardOf(replacedByMap.get(pl.ps.player.id).player.id) : null}
                 replacedByRating={
                   replacedByMap.get(pl.ps.player.id)
                     ? ratings[replacedByMap.get(pl.ps.player.id).player.id] ?? null
@@ -425,9 +488,9 @@ export default function LineupPitch({
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accent }}>
             Subentrati
           </p>
-          <div className="flex flex-wrap gap-x-3 gap-y-5 rounded-xl bg-[#2a7338] px-3 py-5 ring-1 ring-white/10">
+          <div className="grid grid-cols-5 gap-x-1 gap-y-6 rounded-xl bg-[#2a7338] px-2 py-5 ring-1 ring-white/10">
             {entered.map((ps) => (
-              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} sub="in" small />
+              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} award={awardOf(ps.player.id)} sub="in" small />
             ))}
           </div>
           <p className="mt-1 text-[10px]" style={{ color: theme.textMuted }}>
@@ -440,9 +503,9 @@ export default function LineupPitch({
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accent }}>
             Non entrati
           </p>
-          <div className="flex flex-wrap gap-x-3 gap-y-5 rounded-xl bg-[#2a7338] px-3 py-5 ring-1 ring-white/10">
+          <div className="grid grid-cols-5 gap-x-1 gap-y-6 rounded-xl bg-[#2a7338] px-2 py-5 ring-1 ring-white/10">
             {unused.map((ps) => (
-              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} small />
+              <PlayerNode key={ps.id} ps={ps} rating={ratings[ps.player.id] ?? null} award={awardOf(ps.player.id)} small />
             ))}
           </div>
         </div>

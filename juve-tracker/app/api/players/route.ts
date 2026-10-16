@@ -7,6 +7,7 @@ import { POSITION_ORDER } from "@/lib/types";
 import { resolveMatchIds } from "@/lib/competitionFilter";
 import { ALL_EXTRA_KEYS } from "@/lib/statDefs";
 import { parseSeasonParam } from "@/lib/season";
+import { countAwards } from "@/lib/awards";
 
 export async function GET(req: NextRequest) {
   const db = supabaseServer();
@@ -24,9 +25,16 @@ export async function GET(req: NextRequest) {
   if (matchIds !== null) statsQuery = statsQuery.in("match_id", matchIds.length > 0 ? matchIds : [-1]);
   const { data: stats } = await statsQuery;
 
-  let ratingsQuery = db.from("ratings").select("player_id, rating");
+  let ratingsQuery = db.from("ratings").select("match_id, player_id, rating");
   if (matchIds !== null) ratingsQuery = ratingsQuery.in("match_id", matchIds.length > 0 ? matchIds : [-1]);
   const { data: ratings } = await ratingsQuery;
+
+  const coachIds = new Set<number>((players || []).filter((p: any) => p.position === "CO").map((p: any) => p.id));
+  const awardCounts = countAwards(
+    (ratings || []) as any[],
+    (stats || []).filter((r: any) => r.site_rating != null) as any[],
+    coachIds
+  );
 
   const aggregated = (players || []).map((p) => {
     const rows = (stats || []).filter((s) => s.player_id === p.id);
@@ -54,6 +62,8 @@ export async function GET(req: NextRequest) {
         ...extra,
         avg_site_rating: avgSite,
         rated_matches: playerRatings.length,
+        mvp_count: awardCounts.get(p.id)?.mvp ?? 0,
+        worst_count: awardCounts.get(p.id)?.worst ?? 0,
         save_pct: extra.shots_on_target_against > 0 ? Math.round((sum("saves") / extra.shots_on_target_against) * 100) : null,
         dribble_success: dribA > 0 ? Math.round((extra.dribbles_won / dribA) * 100) : null,
         duel_success: duelT > 0 ? Math.round((extra.duels_won / duelT) * 100) : null,

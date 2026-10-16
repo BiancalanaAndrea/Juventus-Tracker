@@ -37,6 +37,8 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: number) => string }[]
   { key: "goal_contributions", label: "G+A" },
   { key: "avg_rating", label: "Voto medio", format: (v) => v.toFixed(2) },
   { key: "avg_site_rating", label: "Voto siti", format: (v) => v.toFixed(2) },
+  { key: "mvp_count", label: "🏆 MVP" },
+  { key: "worst_count", label: "👎 Peggiore" },
   { key: "xg", label: "xG", format: (v) => v.toFixed(2) },
   { key: "xa", label: "xA", format: (v) => v.toFixed(2) },
   { key: "shots_total", label: "Tiri" },

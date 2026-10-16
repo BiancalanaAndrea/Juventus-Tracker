@@ -13,6 +13,7 @@ interface Cat {
   value: (ps: any, ratings: Record<number, number>) => number | null;
   decimals?: number;
   colored?: boolean; // colore del voto
+  worst?: boolean; // classifica dei peggiori (ordine crescente)
 }
 
 const n = (v: any) => (v == null || v === "" ? 0 : Number(v));
@@ -20,7 +21,10 @@ const n = (v: any) => (v == null || v === "" ? 0 : Number(v));
 const CATS: Cat[] = [
   { title: "Il mio voto", value: (ps, r) => r[ps.player.id] ?? null, decimals: 2, colored: true },
   { title: "Voto dei siti", value: (ps) => (ps.site_rating != null ? Number(ps.site_rating) : null), decimals: 1, colored: true },
-  { title: "Gol e assist", value: (ps) => n(ps.goals) + n(ps.assists) },
+  { title: "I peggiori: il mio voto", value: (ps, r) => r[ps.player.id] ?? null, decimals: 2, colored: true, worst: true },
+  { title: "I peggiori: voto dei siti", value: (ps) => (ps.site_rating != null ? Number(ps.site_rating) : null), decimals: 1, colored: true, worst: true },
+  { title: "Gol", value: (ps) => n(ps.goals) },
+  { title: "Assist", value: (ps) => n(ps.assists) },
   { title: "Tiri", value: (ps) => n(ps.shots_total) },
   { title: "Tiri in porta", value: (ps) => n(ps.shots_on_target) },
   { title: "xG (gol attesi)", value: (ps) => n(ps.xg), decimals: 2 },
@@ -55,7 +59,7 @@ export default function MatchTop3({
     const rows = players
       .map((ps) => ({ ps, v: cat.value(ps, ratings) }))
       .filter((x): x is { ps: any; v: number } => x.v != null && x.v > 0)
-      .sort((a, b) => b.v - a.v || String(a.ps.player.name).localeCompare(String(b.ps.player.name)))
+      .sort((a, b) => (cat.worst ? a.v - b.v : b.v - a.v) || String(a.ps.player.name).localeCompare(String(b.ps.player.name)))
       .slice(0, 3);
     return { cat, rows };
   }).filter((c) => c.rows.length > 0);

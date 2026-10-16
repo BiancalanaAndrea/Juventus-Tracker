@@ -19,7 +19,7 @@ async function getPlayer(id: string) {
 export default async function PlayerDetailPage({ params }: { params: { id: string } }) {
   const data = await getPlayer(params.id);
   if (!data) return <div className="p-8">Giocatore non trovato.</div>;
-  const { player, history, avgRating, coach } = data;
+  const { player, history, avgRating, coach, awards } = data;
   const isGK = player.position === "GK";
 
   const totals = history.reduce(
@@ -117,6 +117,8 @@ export default async function PlayerDetailPage({ params }: { params: { id: strin
       {!coach && (<>
       <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 mb-8">
         <Stat label="Presenze" value={history.length} />
+        {awards && <Stat label="🏆 MVP" value={awards.mvp} />}
+        {awards && <Stat label="👎 Peggiore" value={awards.worst} />}
         <Stat label="Minuti" value={totals.minutes} />
         <Stat label="Gol" value={totals.goals} />
         <Stat label="Assist" value={totals.assists} />

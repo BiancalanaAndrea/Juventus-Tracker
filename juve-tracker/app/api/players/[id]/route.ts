@@ -4,6 +4,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { parseSeasonParam, seasonBounds } from "@/lib/season";
+import { countAwards } from "@/lib/awards";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const db = supabaseServer();
@@ -53,7 +54,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     coach = { played: list.length, won, drawn, lost, goals_for: gf, goals_against: ga, matches: list };
   }
 
-  return NextResponse.json({ player, history, avgRating, coach });
+  // MVP / peggiore in campo nelle partite di questo giocatore
+  let awards = { mvp: 0, worst: 0 };
+  const matchIds = history.map((h: any) => h.match_id);
+  if (matchIds.length > 0 && player.position !== "CO") {
+    const [{ data: allMine }, { data: allSite }, { data: coachRows }] = await Promise.all([
+      db.from("ratings").select("match_id, player_id, rating").in("match_id", matchIds),
+      db.from("match_player_stats").select("match_id, player_id, site_rating").in("match_id", matchIds).not("site_rating", "is", null),
+      db.from("players").select("id").eq("position", "CO"),
+    ]);
+    const counts = countAwards((allMine || []) as any[], (allSite || []) as any[], new Set((coachRows || []).map((c: any) => c.id)));
+    awards = counts.get(playerId) || awards;
+  }
+
+  return NextResponse.json({ player, history, avgRating, coach, awards });
 }
 
 // Modifica dati anagrafici del giocatore
