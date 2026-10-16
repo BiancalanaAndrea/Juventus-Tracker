@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import SeasonSwitcher from "./SeasonSwitcher";
 
 // "short" = scritta breve per la barra in basso del cellulare (poco spazio)
 const ITEMS = [
@@ -35,6 +36,9 @@ export default function Nav() {
               <p className="scoreboard text-lg leading-none tracking-wide text-gold">TRACKER</p>
             </div>
           </div>
+        </div>
+        <div className="border-b border-white/10 px-6 py-3">
+          <SeasonSwitcher className="justify-between" />
         </div>
         <nav className="flex flex-col gap-1 px-3 py-4">
           {ITEMS.map((item) => (

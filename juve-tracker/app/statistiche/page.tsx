@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import PlayersStatsTable from "@/components/PlayersStatsTable";
+import { useSeason } from "@/components/SeasonProvider";
 import { getTheme, getPageBackground } from "@/lib/competitionThemes";
 import { computeSeasonStats } from "@/lib/types";
 import { highestRound, leaguePhasePoints, pointsOf } from "@/lib/competitionProgress";
@@ -14,6 +15,7 @@ const TABS = [
 ];
 
 export default function StatistichePage() {
+  const { season, ready, label } = useSeason();
   const [active, setActive] = useState("");
   const [players, setPlayers] = useState<any[]>([]);
   const [seasonStats, setSeasonStats] = useState<any>({ played: 0, won: 0, drawn: 0, lost: 0, goals_for: 0, goals_against: 0 });
@@ -29,7 +31,7 @@ export default function StatistichePage() {
     async (silent = false) => {
       if (silent) setRefreshing(true);
       else setLoading(true);
-      const qs = active ? `?competition=${active}` : "";
+      const qs = `?season=${season}${active ? `&competition=${active}` : ""}`;
       const [p, m, t] = await Promise.all([
         fetch(`/api/players${qs}`, { cache: "no-store" }).then((r) => r.json()),
         fetch(`/api/matches${qs}`, { cache: "no-store" }).then((r) => r.json()),
@@ -42,30 +44,34 @@ export default function StatistichePage() {
       setLoading(false);
       setRefreshing(false);
     },
-    [active]
+    [active, season]
   );
 
   useEffect(() => {
+    if (!ready) return;
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+  }, [active, season, ready]);
 
   useEffect(() => {
     const onFocus = () => load(true);
     window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", () => {
+    const onVisible = () => {
       if (document.visibilityState === "visible") load(true);
-    });
-    return () => window.removeEventListener("focus", onFocus);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [load]);
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={getPageBackground(theme)}>
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="scoreboard text-3xl" style={{ color: theme.text }}>
-            Statistiche
+            Statistiche <span className="text-xl" style={{ color: theme.accent }}>{label}</span>
           </h1>
           <button
             onClick={() => load(true)}

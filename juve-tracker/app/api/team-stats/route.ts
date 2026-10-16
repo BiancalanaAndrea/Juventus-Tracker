@@ -4,12 +4,13 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { resolveMatchIds } from "@/lib/competitionFilter";
+import { parseSeasonParam } from "@/lib/season";
 
 export async function GET(req: NextRequest) {
   const db = supabaseServer();
   const competition = req.nextUrl.searchParams.get("competition");
 
-  const matchIds = await resolveMatchIds(db, competition);
+  const matchIds = await resolveMatchIds(db, competition, parseSeasonParam(req.nextUrl.searchParams.get("season")));
 
   let query = db.from("match_team_stats").select("*").eq("side", "juve");
   if (matchIds !== null) query = query.in("match_id", matchIds.length > 0 ? matchIds : [-1]);

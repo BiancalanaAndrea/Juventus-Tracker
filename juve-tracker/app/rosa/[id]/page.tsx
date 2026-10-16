@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { POSITION_LABELS } from "@/lib/types";
 import BackButton from "@/components/BackButton";
 import PlayerActions from "@/components/PlayerActions";
@@ -10,7 +10,8 @@ async function getPlayer(id: string) {
   const h = headers();
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("host");
-  const res = await fetch(`${proto}://${host}/api/players/${id}`, { cache: "no-store" });
+  const season = cookies().get("jt_season")?.value;
+  const res = await fetch(`${proto}://${host}/api/players/${id}${season ? `?season=${encodeURIComponent(season)}` : ""}`, { cache: "no-store" });
   if (!res.ok) return null;
   return res.json();
 }

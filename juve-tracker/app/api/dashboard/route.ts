@@ -1,19 +1,26 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { matchOutcome } from "@/lib/types";
 import { attachPhases } from "@/lib/matchPhase";
+import { parseSeasonParam, seasonBounds } from "@/lib/season";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const season = parseSeasonParam(req.nextUrl.searchParams.get("season"));
   let matches: any[] | null = null;
   try {
     const db = supabaseServer();
-    const res = await db
+    let q = db
       .from("matches")
       .select("*, competition:competitions(name,short_name)")
       .order("match_date", { ascending: true });
+    if (season !== null) {
+      const { from, to } = seasonBounds(season);
+      q = q.gte("match_date", from).lt("match_date", to);
+    }
+    const res = await q;
     if (res.error) {
       console.error("Errore /api/dashboard:", res.error.message);
       return NextResponse.json({ error: res.error.message }, { status: 500 });

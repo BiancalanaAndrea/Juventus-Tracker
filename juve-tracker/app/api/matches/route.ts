@@ -4,6 +4,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { attachPhases } from "@/lib/matchPhase";
+import { parseSeasonParam, seasonBounds } from "@/lib/season";
 
 // GET: lista partite, filtrabile per competizione (?competition=serie_a)
 export async function GET(req: NextRequest) {
@@ -18,6 +19,12 @@ export async function GET(req: NextRequest) {
   if (competition) {
     const { data: comp } = await db.from("competitions").select("id").eq("short_name", competition).single();
     if (comp) query = query.eq("competition_id", comp.id);
+  }
+
+  const season = parseSeasonParam(req.nextUrl.searchParams.get("season"));
+  if (season !== null) {
+    const { from, to } = seasonBounds(season);
+    query = query.gte("match_date", from).lt("match_date", to);
   }
 
   const { data, error } = await query;

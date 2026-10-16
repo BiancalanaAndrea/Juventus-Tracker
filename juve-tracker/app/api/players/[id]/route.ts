@@ -3,10 +3,15 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { parseSeasonParam, seasonBounds } from "@/lib/season";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const db = supabaseServer();
   const playerId = Number(params.id);
+  const season = parseSeasonParam(req.nextUrl.searchParams.get("season"));
+  const bounds = season !== null ? seasonBounds(season) : null;
+  const inSeason = (date: string | null | undefined) =>
+    !bounds || (!!date && date >= bounds.from && date < bounds.to);
 
   const { data: player, error } = await db.from("players").select("*").eq("id", playerId).single();
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -19,11 +24,14 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const { data: ratings } = await db.from("ratings").select("match_id, rating, note").eq("player_id", playerId);
   const ratingByMatch = new Map((ratings || []).map((r) => [r.match_id, r]));
-  const history = (matchStats || []).map((m: any) => ({ ...m, my_rating: ratingByMatch.get(m.match_id)?.rating ?? null }));
+  const history = (matchStats || [])
+    .filter((m: any) => inSeason(m.match?.match_date))
+    .map((m: any) => ({ ...m, my_rating: ratingByMatch.get(m.match_id)?.rating ?? null }));
 
+  const ratedInSeason = history.filter((h: any) => h.my_rating != null);
   const avgRating =
-    (ratings || []).length > 0
-      ? (ratings || []).reduce((a, r) => a + Number(r.rating), 0) / (ratings || []).length
+    ratedInSeason.length > 0
+      ? ratedInSeason.reduce((a: number, h: any) => a + Number(h.my_rating), 0) / ratedInSeason.length
       : null;
 
   // Allenatore: niente statistiche da giocatore, ma risultati e voti di tutte le partite giocate
@@ -35,7 +43,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .eq("status", "FINISHED")
       .eq("coach_id", playerId)
       .order("match_date", { ascending: false });
-    const list = (ms || []).map((m: any) => ({ ...m, my_rating: ratingByMatch.get(m.id)?.rating ?? null }));
+    const list = (ms || []).filter((m: any) => inSeason(m.match_date)).map((m: any) => ({ ...m, my_rating: ratingByMatch.get(m.id)?.rating ?? null }));
     let won = 0, drawn = 0, lost = 0, gf = 0, ga = 0;
     for (const m of list) {
       const a = m.juve_score ?? 0, b = m.opponent_score ?? 0;

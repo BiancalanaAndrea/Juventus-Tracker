@@ -6,6 +6,7 @@ import { supabaseServer } from "@/lib/supabase";
 import { POSITION_ORDER } from "@/lib/types";
 import { resolveMatchIds } from "@/lib/competitionFilter";
 import { ALL_EXTRA_KEYS } from "@/lib/statDefs";
+import { parseSeasonParam } from "@/lib/season";
 
 export async function GET(req: NextRequest) {
   const db = supabaseServer();
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     .eq("active", true);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const matchIds = await resolveMatchIds(db, competition);
+  const matchIds = await resolveMatchIds(db, competition, parseSeasonParam(req.nextUrl.searchParams.get("season")));
 
   let statsQuery = db.from("match_player_stats").select("*");
   if (matchIds !== null) statsQuery = statsQuery.in("match_id", matchIds.length > 0 ? matchIds : [-1]);

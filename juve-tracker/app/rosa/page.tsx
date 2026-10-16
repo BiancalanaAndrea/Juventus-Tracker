@@ -5,28 +5,34 @@ import Link from "next/link";
 import { POSITION_ORDER, POSITION_LABELS } from "@/lib/types";
 import NewPlayerForm from "@/components/NewPlayerForm";
 import PlayerPhoto from "@/components/PlayerPhoto";
+import { useSeason } from "@/components/SeasonProvider";
 
 export default function RosaPage() {
+  const { season, ready, label } = useSeason();
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch("/api/players", { cache: "no-store" });
+    const res = await fetch(`/api/players?season=${season}`, { cache: "no-store" });
     const data = await res.json();
     setPlayers(data.players || []);
     setLoading(false);
   };
 
   useEffect(() => {
+    if (!ready) return;
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [season, ready]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="scoreboard text-3xl page-header">Rosa</h1>
+        <h1 className="scoreboard text-3xl page-header">
+          Rosa <span className="text-gold text-xl">{label}</span>
+        </h1>
         <button onClick={() => setShowForm((s) => !s)} className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-chalk">
           {showForm ? "Chiudi" : "+ Nuovo giocatore"}
         </button>

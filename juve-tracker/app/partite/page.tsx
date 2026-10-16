@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import MatchCard from "@/components/MatchCard";
 import NewMatchForm from "@/components/NewMatchForm";
 import { getTheme, getPageBackground } from "@/lib/competitionThemes";
+import { useSeason } from "@/components/SeasonProvider";
 
 const TABS = [
   { key: "", themeKey: "all", label: "Tutte" },
@@ -13,6 +14,7 @@ const TABS = [
 ];
 
 export default function PartitePage() {
+  const { season, ready, label } = useSeason();
   const [active, setActive] = useState("");
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ export default function PartitePage() {
 
   const load = async () => {
     setLoading(true);
-    const qs = active ? `?competition=${active}` : "";
+    const qs = `?season=${season}${active ? `&competition=${active}` : ""}`;
     const res = await fetch(`/api/matches${qs}`, { cache: "no-store" });
     const data = await res.json();
     // dalla più recente (anche da giocare) alla meno recente
@@ -35,16 +37,17 @@ export default function PartitePage() {
   };
 
   useEffect(() => {
+    if (!ready) return;
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+  }, [active, season, ready]);
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={getPageBackground(theme)}>
       <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="scoreboard text-3xl" style={{ color: theme.text }}>
-            Partite
+            Partite <span className="text-xl" style={{ color: theme.accent }}>{label}</span>
           </h1>
           <button
             onClick={() => setShowForm((s) => !s)}

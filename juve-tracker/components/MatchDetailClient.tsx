@@ -8,6 +8,7 @@ import RatingPicker from "./RatingPicker";
 import BackButton from "./BackButton";
 import RosterPicker from "./RosterPicker";
 import LineupPitch from "./LineupPitch";
+import MatchTop3 from "./MatchTop3";
 import { layoutLineup, sortBench } from "@/lib/formations";
 import { PLAYER_EXTRA_GROUPS, TEAM_EXTRA_ROWS, fmtStat } from "@/lib/statDefs";
 
@@ -250,7 +251,7 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={getPageBackground(theme)}>
-      <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
+      <div className={`mx-auto px-4 py-8 md:px-8 ${match.status === "FINISHED" ? "max-w-5xl" : "max-w-3xl"}`}>
       <BackButton color={theme.textMuted} />
       <div
         className="rounded-lg p-5 mb-6"
@@ -522,24 +523,29 @@ export default function MatchDetailClient({ initial }: { initial: any }) {
           <h2 className="text-sm font-medium uppercase tracking-wide mb-3" style={{ color: theme.text, opacity: 0.7 }}>
             Formazione in campo
           </h2>
-          <LineupPitch
-            matchId={match.id}
-            formation={match.formation ?? null}
-            playerStats={playerStats}
-            ratings={ratings}
-            coach={matchCoach}
-            theme={theme}
-            onFormationSaved={(f) => {
-              setMatch({ ...match, formation: f });
-            }}
-            onSlotsSaved={(slots) =>
-              setPlayerStats(
-                playerStats.map((ps: any) =>
-                  slots[ps.player.id] != null ? { ...ps, slot: slots[ps.player.id] } : ps
+          <div className="grid gap-6 lg:grid-cols-[28rem_minmax(0,1fr)]">
+            <div className="min-w-0">
+            <LineupPitch
+              matchId={match.id}
+              formation={match.formation ?? null}
+              playerStats={playerStats}
+              ratings={ratings}
+              coach={matchCoach}
+              theme={theme}
+              onFormationSaved={(f) => {
+                setMatch({ ...match, formation: f });
+              }}
+              onSlotsSaved={(slots) =>
+                setPlayerStats(
+                  playerStats.map((ps: any) =>
+                    slots[ps.player.id] != null ? { ...ps, slot: slots[ps.player.id] } : ps
+                  )
                 )
-              )
-            }
-          />
+              }
+            />
+            </div>
+            <MatchTop3 playerStats={playerStats} ratings={ratings} theme={theme} />
+          </div>
         </section>
       )}
 

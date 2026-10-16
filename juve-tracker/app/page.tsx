@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import MatchCard from "@/components/MatchCard";
 import { matchOutcome } from "@/lib/types";
+import { useSeason } from "@/components/SeasonProvider";
 
 export default function DashboardPage() {
+  const { season, ready, label } = useSeason();
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ export default function DashboardPage() {
     else setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/dashboard", { cache: "no-store" });
+      const res = await fetch(`/api/dashboard?season=${season}`, { cache: "no-store" });
       const json = await res.json();
       if (!res.ok) setError(json.error || "Errore sconosciuto");
       else setData(json);
@@ -25,17 +27,22 @@ export default function DashboardPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [season]);
 
   useEffect(() => {
+    if (!ready) return;
     load();
     const onFocus = () => load(true);
     window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", () => {
+    const onVisible = () => {
       if (document.visibilityState === "visible") load(true);
-    });
-    return () => window.removeEventListener("focus", onFocus);
-  }, [load]);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [load, ready]);
 
   if (loading) {
     return (
@@ -82,7 +89,9 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="scoreboard text-4xl page-header">Dashboard</h1>
+        <h1 className="scoreboard text-4xl page-header">
+          Dashboard <span className="text-gold text-2xl">{label}</span>
+        </h1>
         <button
           onClick={() => load(true)}
           disabled={refreshing}

@@ -7,9 +7,28 @@ import { photoImgStyle } from "@/lib/photo";
 // browser blocca l'immagine) e codifica gli spazi interni.
 export function cleanPhotoUrl(url?: string | null): string | null {
   if (!url) return null;
-  const u = url.trim();
+  let u = url.trim().replace(/^["'<]+|["'>]+$/g, "");
   if (!u) return null;
-  return u.replace(/^http:\/\//i, "https://").replace(/ /g, "%20");
+  // link senza "https://" (es. "www.sito.it/foto.jpg") o che inizia con "//"
+  if (u.startsWith("//")) u = "https:" + u;
+  else if (!/^(https?:|data:|blob:|\/)/i.test(u)) u = "https://" + u;
+  u = u.replace(/^http:\/\//i, "https://");
+
+  // Google Drive: link di condivisione -> link diretto all'immagine
+  const drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
+  if (drive) return `https://drive.google.com/thumbnail?id=${drive[1]}&sz=w800`;
+
+  // Dropbox: ?dl=0 mostra la pagina, ?raw=1 mostra la foto
+  if (/dropbox\.com/i.test(u)) {
+    try {
+      const x = new URL(u);
+      x.searchParams.delete("dl");
+      x.searchParams.set("raw", "1");
+      u = x.toString();
+    } catch {}
+  }
+
+  return u.replace(/ /g, "%20");
 }
 
 function initials(name?: string | null) {

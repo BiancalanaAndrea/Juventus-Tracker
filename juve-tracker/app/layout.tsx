@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
+import SeasonProvider from "@/components/SeasonProvider";
+import SeasonSwitcher from "@/components/SeasonSwitcher";
 
 export const metadata: Metadata = {
   title: "Juve Tracker",
@@ -28,10 +30,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <div className="flex min-h-screen w-full max-w-full flex-col md:flex-row">
-          <Nav />
-          <main className="min-w-0 flex-1 pb-24 md:pb-0 md:pl-64">{children}</main>
-        </div>
+        <SeasonProvider>
+          <div className="flex min-h-screen w-full max-w-full flex-col md:flex-row">
+            <Nav />
+            <main className="min-w-0 flex-1 pb-24 md:pb-0 md:pl-64">
+              {/* cellulare: barra in alto con il cambio stagione */}
+              <div
+                className="flex items-center justify-between gap-3 border-b border-white/10 bg-chalk px-4 py-2 md:hidden"
+                style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top, 0px))" }}
+              >
+                <span className="scoreboard text-base tracking-wide">
+                  JUVE <span className="text-gold">TRACKER</span>
+                </span>
+                <SeasonSwitcher />
+              </div>
+              {children}
+            </main>
+          </div>
+        </SeasonProvider>
       </body>
     </html>
   );
